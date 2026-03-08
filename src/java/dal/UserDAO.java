@@ -35,6 +35,7 @@ public class UserDAO extends DBContext {
                 u.setEmail(rs.getString("email"));
                 u.setRole(rs.getString("role"));
                 u.setIsActive(rs.getBoolean("is_active"));
+                u.setPassword(rs.getString("password"));
 
                 list.add(u);
             }

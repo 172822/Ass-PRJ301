@@ -26,6 +26,7 @@ public class TestDB {
             System.out.println("Email: " + u.getEmail());
             System.out.println("Role: " + u.getRole());
             System.out.println("Active: " + u.getIsActive());
+            System.out.println("Password: "+ u.getPassword());
             System.out.println("-----------------------");
         }
     }

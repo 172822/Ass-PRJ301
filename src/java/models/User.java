@@ -10,6 +10,7 @@ public class User {
     private String email;
     private String role;
     private Boolean isActive;
+    private String password; 
 
     public User() {}
 
@@ -44,4 +45,14 @@ public class User {
 
     public Boolean getIsActive() { return isActive; }
     public void setIsActive(Boolean isActive) { this.isActive = isActive; }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+    
+    
 }
