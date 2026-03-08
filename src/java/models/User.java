@@ -1,6 +1,5 @@
 package models;
 
-import java.util.List;
 
 public class User {
 
@@ -10,12 +9,12 @@ public class User {
     private String cccd;
     private String email;
     private String role;
-    private Short isActive;
+    private Boolean isActive;
 
     public User() {}
 
     public User(Integer id, String fullName, String phone, String cccd,
-                String email, String role, Short isActive) {
+                String email, String role, Boolean isActive) {
         this.id = id;
         this.fullName = fullName;
         this.phone = phone;
@@ -43,6 +42,6 @@ public class User {
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
 
-    public Short getIsActive() { return isActive; }
-    public void setIsActive(Short isActive) { this.isActive = isActive; }
+    public Boolean getIsActive() { return isActive; }
+    public void setIsActive(Boolean isActive) { this.isActive = isActive; }
 }

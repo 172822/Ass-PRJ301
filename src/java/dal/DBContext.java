@@ -25,7 +25,9 @@ public class DBContext {
         //@Students: You are not allowed to edit this method  
         try {
             Properties properties = new Properties();
-            InputStream inputStream = getClass().getClassLoader().getResourceAsStream("../ConnectDB.properties");
+            InputStream inputStream = getClass()
+        .getClassLoader()
+        .getResourceAsStream("dal/ConnectDB.properties");
             try {
                 properties.load(inputStream);
             } catch (IOException ex) {
