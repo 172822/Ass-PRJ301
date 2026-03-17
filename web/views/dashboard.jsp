@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -34,7 +34,7 @@
             <jsp:include page="common/header.jsp"/>
             <div class="content">
                 <h1>Dashboard</h1>
-                <c:if test="${sessionScope.user.role == 'admin' || sessionScope.user.role == 'landlord'}">
+                <c:if test="${sessionScope.user.role == 'ADMIN' || sessionScope.user.role == 'LANDLORD'}">
                     <div class="stats">
                         <div class="stat">Nhà trọ: <span>${boardingHouseCount}</span></div>
                         <div class="stat">Phòng: <span>${roomCount}</span></div>
@@ -42,7 +42,7 @@
                         <div class="stat">Hóa đơn: <span>${invoiceCount}</span></div>
                     </div>
                 </c:if>
-                <c:if test="${sessionScope.user.role == 'tenant'}">
+                <c:if test="${sessionScope.user.role == 'STUDENT'}">
                     <div class="card">
                         <h3>Hợp đồng của tôi</h3>
                         <c:choose>
