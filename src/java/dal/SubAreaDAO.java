@@ -29,6 +29,21 @@ public class SubAreaDAO extends DBContext {
         return list;
     }
 
+    public SubArea getById(int id) {
+        String sql = "SELECT * FROM sub_area WHERE id = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, id);
+            ResultSet rs = st.executeQuery();
+            if (rs.next()) {
+                return new SubArea(rs.getInt("id"), rs.getInt("area_id"), rs.getString("name"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public void insert(SubArea s) {
 
         String sql = "INSERT INTO sub_area(area_id,name) VALUES(?,?)";

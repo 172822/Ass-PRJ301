@@ -47,6 +47,55 @@ public class UserDAO extends DBContext {
         return list;
     }
 
+    public User getUserByEmailAndPassword(String email, String password) {
+        String sql = "SELECT * FROM [user] WHERE email = ? AND password = ? AND is_active = 1";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1, email);
+            st.setString(2, password);
+            ResultSet rs = st.executeQuery();
+            if (rs.next()) {
+                User u = new User();
+                u.setId(rs.getInt("id"));
+                u.setFullName(rs.getString("full_name"));
+                u.setPhone(rs.getString("phone"));
+                u.setCccd(rs.getString("cccd"));
+                u.setEmail(rs.getString("email"));
+                u.setRole(rs.getString("role"));
+                u.setIsActive(rs.getBoolean("is_active"));
+                u.setPassword(rs.getString("password"));
+                return u;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public List<User> getByRole(String role) {
+        List<User> list = new ArrayList<>();
+        String sql = "SELECT * FROM [user] WHERE role = ? AND is_active = 1";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1, role);
+            ResultSet rs = st.executeQuery();
+            while (rs.next()) {
+                User u = new User();
+                u.setId(rs.getInt("id"));
+                u.setFullName(rs.getString("full_name"));
+                u.setPhone(rs.getString("phone"));
+                u.setCccd(rs.getString("cccd"));
+                u.setEmail(rs.getString("email"));
+                u.setRole(rs.getString("role"));
+                u.setIsActive(rs.getBoolean("is_active"));
+                list.add(u);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     public User getUserById(int id) {
 
         String sql = "SELECT * FROM [user] WHERE id = ?";
@@ -80,7 +129,7 @@ public class UserDAO extends DBContext {
 
     public void insertUser(User u) {
 
-        String sql = "INSERT INTO [user](full_name, phone, cccd, email, role, is_active) VALUES (?,?,?,?,?,?)";
+        String sql = "INSERT INTO [user](full_name, phone, cccd, email, role, is_active, password) VALUES (?,?,?,?,?,?,?)";
 
         try {
             PreparedStatement st = connection.prepareStatement(sql);
@@ -91,6 +140,7 @@ public class UserDAO extends DBContext {
             st.setString(4, u.getEmail());
             st.setString(5, u.getRole());
             st.setBoolean(6, u.getIsActive());
+            st.setString(7, u.getPassword() != null ? u.getPassword() : "");
 
             st.executeUpdate();
 
@@ -116,6 +166,24 @@ public class UserDAO extends DBContext {
 
             st.executeUpdate();
 
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void updateUserWithPassword(User u) {
+        String sql = "UPDATE [user] SET full_name=?, phone=?, cccd=?, email=?, role=?, is_active=?, password=? WHERE id=?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1, u.getFullName());
+            st.setString(2, u.getPhone());
+            st.setString(3, u.getCccd());
+            st.setString(4, u.getEmail());
+            st.setString(5, u.getRole());
+            st.setBoolean(6, u.getIsActive());
+            st.setString(7, u.getPassword() != null ? u.getPassword() : "");
+            st.setInt(8, u.getId());
+            st.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         }
