@@ -23,7 +23,7 @@ public class MeterReadingServlet extends HttpServlet {
 
     private List<Room> getRoomsForUser(User user) {
         if (user == null) return List.of();
-        if ("admin".equals(user.getRole())) return roomDAO.getAll();
+        if ("ADMIN".equals(user.getRole())) return roomDAO.getAll();
         List<BoardingHouse> houses = boardingHouseDAO.getByLandlordId(user.getId());
         List<Integer> houseIds = houses.stream().map(BoardingHouse::getId).collect(Collectors.toList());
         return roomDAO.getAll().stream().filter(r -> houseIds.contains(r.getBoardingHouseId())).collect(Collectors.toList());
@@ -33,7 +33,7 @@ public class MeterReadingServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         User user = (User) request.getSession().getAttribute("user");
-        if (user == null || "tenant".equals(user.getRole())) {
+        if (user == null || "STUDENT".equals(user.getRole())) {
             response.sendRedirect(request.getContextPath() + "/dashboard");
             return;
         }
@@ -69,7 +69,7 @@ public class MeterReadingServlet extends HttpServlet {
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
         User user = (User) request.getSession().getAttribute("user");
-        if (user == null || "tenant".equals(user.getRole())) {
+        if (user == null || "STUDENT".equals(user.getRole())) {
             response.sendRedirect(request.getContextPath() + "/dashboard");
             return;
         }

@@ -33,12 +33,12 @@ public class DashboardServlet extends HttpServlet {
             return;
         }
         String role = user.getRole();
-        if ("admin".equals(role)) {
+        if ("ADMIN".equals(role)) {
             request.setAttribute("boardingHouseCount", boardingHouseDAO.getAll().size());
             request.setAttribute("roomCount", roomDAO.getAll().size());
             request.setAttribute("contractCount", contractDAO.getAll().size());
             request.setAttribute("invoiceCount", invoiceDAO.getAll().size());
-        } else if ("landlord".equals(role)) {
+        } else if ("LANDLORD".equals(role)) {
             List<BoardingHouse> myHouses = boardingHouseDAO.getAll().stream()
                     .filter(b -> user.getId().equals(b.getLandlordId()))
                     .collect(Collectors.toList());
@@ -55,7 +55,7 @@ public class DashboardServlet extends HttpServlet {
             request.setAttribute("roomCount", myRooms.size());
             request.setAttribute("contractCount", contractCount);
             request.setAttribute("invoiceCount", invoiceCount);
-        } else if ("tenant".equals(role)) {
+        } else if ("STUDENT".equals(role)) {
             List<Contract> myContracts = contractDAO.getByUserId(user.getId());
             List<Integer> myRoomIds = myContracts.stream().map(Contract::getRoomId).collect(Collectors.toList());
             List<Invoice> myInvoices = invoiceDAO.getAll().stream()

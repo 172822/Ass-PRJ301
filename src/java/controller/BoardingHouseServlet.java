@@ -20,7 +20,7 @@ public class BoardingHouseServlet extends HttpServlet {
 
     private List<BoardingHouse> getListForUser(User user) {
         if (user == null) return List.of();
-        if ("admin".equals(user.getRole())) return boardingHouseDAO.getAll();
+        if ("ADMIN".equals(user.getRole())) return boardingHouseDAO.getAll();
         return boardingHouseDAO.getByLandlordId(user.getId());
     }
 
@@ -28,7 +28,7 @@ public class BoardingHouseServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         User user = (User) request.getSession().getAttribute("user");
-        if (user == null || ("tenant".equals(user.getRole()))) {
+        if (user == null || ("STUDENT".equals(user.getRole()))) {
             response.sendRedirect(request.getContextPath() + "/dashboard");
             return;
         }
@@ -37,18 +37,18 @@ public class BoardingHouseServlet extends HttpServlet {
             String idStr = request.getParameter("id");
             if (idStr != null) {
                 BoardingHouse b = boardingHouseDAO.getById(Integer.parseInt(idStr));
-                if (b != null && ("admin".equals(user.getRole()) || user.getId().equals(b.getLandlordId()))) {
+                if (b != null && ("ADMIN".equals(user.getRole()) || user.getId().equals(b.getLandlordId()))) {
                     request.setAttribute("boardinghouse", b);
                 }
             }
             request.setAttribute("subareas", subAreaDAO.getAll());
-            if ("admin".equals(user.getRole())) request.setAttribute("users", userDAO.getAllUsers());
+            if ("ADMIN".equals(user.getRole())) request.setAttribute("users", userDAO.getAllUsers());
             request.getRequestDispatcher("/views/boardinghouse/form.jsp").forward(request, response);
             return;
         }
         if ("add".equals(action)) {
             request.setAttribute("subareas", subAreaDAO.getAll());
-            if ("admin".equals(user.getRole())) request.setAttribute("users", userDAO.getAllUsers());
+            if ("ADMIN".equals(user.getRole())) request.setAttribute("users", userDAO.getAllUsers());
             request.getRequestDispatcher("/views/boardinghouse/form.jsp").forward(request, response);
             return;
         }
@@ -62,7 +62,7 @@ public class BoardingHouseServlet extends HttpServlet {
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
         User user = (User) request.getSession().getAttribute("user");
-        if (user == null || "tenant".equals(user.getRole())) {
+        if (user == null || "STUDENT".equals(user.getRole())) {
             response.sendRedirect(request.getContextPath() + "/dashboard");
             return;
         }
@@ -71,7 +71,7 @@ public class BoardingHouseServlet extends HttpServlet {
             String idStr = request.getParameter("id");
             if (idStr != null) {
                 BoardingHouse b = boardingHouseDAO.getById(Integer.parseInt(idStr));
-                if (b != null && ("admin".equals(user.getRole()) || user.getId().equals(b.getLandlordId())))
+                if (b != null && ("ADMIN".equals(user.getRole()) || user.getId().equals(b.getLandlordId())))
                     boardingHouseDAO.delete(Integer.parseInt(idStr));
             }
             response.sendRedirect(request.getContextPath() + "/boardinghouse");
@@ -83,12 +83,12 @@ public class BoardingHouseServlet extends HttpServlet {
         if (name == null || name.trim().isEmpty() || subAreaIdStr == null || subAreaIdStr.isEmpty()) {
             request.setAttribute("error", "Vui lòng điền đầy đủ thông tin.");
             request.setAttribute("subareas", subAreaDAO.getAll());
-            if ("admin".equals(user.getRole())) request.setAttribute("users", userDAO.getAllUsers());
+            if ("ADMIN".equals(user.getRole())) request.setAttribute("users", userDAO.getAllUsers());
             request.getRequestDispatcher("/views/boardinghouse/form.jsp").forward(request, response);
             return;
         }
         int landlordId = user.getId();
-        if ("admin".equals(user.getRole())) {
+        if ("ADMIN".equals(user.getRole())) {
             String lid = request.getParameter("landlordId");
             if (lid != null && !lid.isEmpty()) landlordId = Integer.parseInt(lid);
         }
@@ -96,7 +96,7 @@ public class BoardingHouseServlet extends HttpServlet {
         String idStr = request.getParameter("id");
         if (idStr != null && !idStr.isEmpty()) {
             BoardingHouse b = boardingHouseDAO.getById(Integer.parseInt(idStr));
-            if (b != null && ("admin".equals(user.getRole()) || user.getId().equals(b.getLandlordId()))) {
+            if (b != null && ("ADMIN".equals(user.getRole()) || user.getId().equals(b.getLandlordId()))) {
                 b.setName(name.trim());
                 b.setAddress(address != null ? address.trim() : "");
                 b.setSubAreaId(subAreaId);

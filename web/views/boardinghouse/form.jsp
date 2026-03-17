@@ -35,12 +35,12 @@
                 <div class="card">
                     <form action="${pageContext.request.contextPath}/boardinghouse" method="post">
                         <c:if test="${boardinghouse != null}"><input type="hidden" name="id" value="${boardinghouse.id}"></c:if>
-                        <c:if test="${sessionScope.user.role == 'admin'}">
+                        <c:if test="${sessionScope.user.role == 'ADMIN'}">
                             <div class="form-group">
                                 <label>Chủ trọ</label>
                                 <select name="landlordId">
                                     <c:forEach items="${users}" var="u">
-                                        <c:if test="${u.role == 'landlord' || u.role == 'admin'}">
+                                        <c:if test="${u.role == 'LANDLORD' || u.role == 'ADMIN'}">
                                             <option value="${u.id}" ${boardinghouse != null && boardinghouse.landlordId == u.id ? 'selected' : ''}>${u.fullName} (${u.email})</option>
                                         </c:if>
                                     </c:forEach>

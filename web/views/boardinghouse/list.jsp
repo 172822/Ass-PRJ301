@@ -34,14 +34,14 @@
                 <p><a href="${pageContext.request.contextPath}/boardinghouse?action=add" class="btn btn-primary">Thêm nhà trọ</a></p>
                 <div class="card">
                     <table>
-                        <tr><th>ID</th><th>Tên</th><th>Địa chỉ</th><th>Khu vực con</th><c:if test="${sessionScope.user.role == 'admin'}"><th>Chủ trọ</th></c:if><th>Thao tác</th></tr>
+                        <tr><th>ID</th><th>Tên</th><th>Địa chỉ</th><th>Khu vực con</th><c:if test="${sessionScope.user.role == 'ADMIN'}"><th>Chủ trọ</th></c:if><th>Thao tác</th></tr>
                         <c:forEach items="${boardinghouses}" var="b">
                             <tr>
                                 <td>${b.id}</td>
                                 <td>${b.name}</td>
                                 <td>${b.address}</td>
                                 <td><c:forEach items="${subareas}" var="s"><c:if test="${s.id == b.subAreaId}">${s.name}</c:if></c:forEach></td>
-                                <c:if test="${sessionScope.user.role == 'admin'}">
+                                <c:if test="${sessionScope.user.role == 'ADMIN'}">
                                     <td>${b.landlordId}</td>
                                 </c:if>
                                 <td>

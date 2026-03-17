@@ -58,9 +58,9 @@
                         <div class="form-group">
                             <label>Vai trò</label>
                             <select name="role">
-                                <option value="admin" ${editUser != null && editUser.role == 'admin' ? 'selected' : ''}>Admin</option>
-                                <option value="landlord" ${editUser != null && editUser.role == 'landlord' ? 'selected' : ''}>Chủ trọ</option>
-                                <option value="tenant" ${editUser != null && editUser.role == 'tenant' ? 'selected' : ''}>Khách thuê</option>
+                                <option value="ADMIN" ${editUser != null && editUser.role == 'ADMIN' ? 'selected' : ''}>Admin</option>
+                                <option value="LANDLORD" ${editUser != null && editUser.role == 'LANDLORD' ? 'selected' : ''}>Chủ trọ</option>
+                                <option value="STUDENT" ${editUser != null && editUser.role == 'STUDENT' ? 'selected' : ''}>Khách thuê</option>
                             </select>
                         </div>
                         <div class="form-group">

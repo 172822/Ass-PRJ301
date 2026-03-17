@@ -31,8 +31,8 @@ public class InvoiceServlet extends HttpServlet {
 
     private List<Room> getRoomsForUser(User user) {
         if (user == null) return List.of();
-        if ("admin".equals(user.getRole())) return roomDAO.getAll();
-        if ("tenant".equals(user.getRole())) {
+        if ("ADMIN".equals(user.getRole())) return roomDAO.getAll();
+        if ("STUDENT".equals(user.getRole())) {
             List<Integer> contractIds = contractUserDAO.getByUserId(user.getId()).stream()
                     .map(ContractUser::getContractId).collect(Collectors.toList());
             return contractDAO.getAll().stream()
@@ -76,7 +76,7 @@ public class InvoiceServlet extends HttpServlet {
             return;
         }
         if ("add".equals(action)) {
-            if ("tenant".equals(user.getRole())) {
+            if ("STUDENT".equals(user.getRole())) {
                 response.sendRedirect(request.getContextPath() + "/invoice");
                 return;
             }
@@ -114,7 +114,7 @@ public class InvoiceServlet extends HttpServlet {
             return;
         }
         String action = request.getParameter("action");
-        if ("delete".equals(action) && !"tenant".equals(user.getRole())) {
+        if ("delete".equals(action) && !"STUDENT".equals(user.getRole())) {
             String idStr = request.getParameter("id");
             if (idStr != null) {
                 Invoice inv = invoiceDAO.getById(Integer.parseInt(idStr));
@@ -124,7 +124,7 @@ public class InvoiceServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/invoice");
             return;
         }
-        if ("save".equals(action) && !"tenant".equals(user.getRole())) {
+        if ("save".equals(action) && !"STUDENT".equals(user.getRole())) {
             String roomIdStr = request.getParameter("roomId");
             String monthStr = request.getParameter("month");
             String yearStr = request.getParameter("year");

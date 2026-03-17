@@ -30,7 +30,7 @@ public class ContractServlet extends HttpServlet {
 
     private List<Room> getRoomsForUser(User user) {
         if (user == null) return List.of();
-        if ("admin".equals(user.getRole())) return roomDAO.getAll();
+        if ("ADMIN".equals(user.getRole())) return roomDAO.getAll();
         List<BoardingHouse> houses = boardingHouseDAO.getByLandlordId(user.getId());
         List<Integer> houseIds = houses.stream().map(BoardingHouse::getId).collect(Collectors.toList());
         return roomDAO.getAll().stream().filter(r -> houseIds.contains(r.getBoardingHouseId())).collect(Collectors.toList());
@@ -38,8 +38,8 @@ public class ContractServlet extends HttpServlet {
 
     private List<Contract> getContractsForUser(User user) {
         if (user == null) return List.of();
-        if ("tenant".equals(user.getRole())) return contractDAO.getByUserId(user.getId());
-        if ("admin".equals(user.getRole())) return contractDAO.getAll();
+        if ("STUDENT".equals(user.getRole())) return contractDAO.getByUserId(user.getId());
+        if ("ADMIN".equals(user.getRole())) return contractDAO.getAll();
         List<Room> myRooms = getRoomsForUser(user);
         List<Integer> roomIds = myRooms.stream().map(Room::getId).collect(Collectors.toList());
         return contractDAO.getAll().stream().filter(c -> roomIds.contains(c.getRoomId())).collect(Collectors.toList());
@@ -72,11 +72,11 @@ public class ContractServlet extends HttpServlet {
                             }
                             request.setAttribute("tenantUsers", tenants);
                         }
-                        if ("edit".equals(action) && !"tenant".equals(user.getRole())) {
+                        if ("edit".equals(action) && !"STUDENT".equals(user.getRole())) {
                             request.setAttribute("rooms", getRoomsForUser(user));
                         }
-                        if (!"tenant".equals(user.getRole())) {
-                            request.setAttribute("availableTenants", userDAO.getByRole("tenant"));
+                        if (!"STUDENT".equals(user.getRole())) {
+                            request.setAttribute("availableTenants", userDAO.getByRole("STUDENT"));
                         }
                         request.getRequestDispatcher("/views/contract/" + action + ".jsp").forward(request, response);
                         return;
@@ -87,7 +87,7 @@ public class ContractServlet extends HttpServlet {
             return;
         }
         if ("add".equals(action)) {
-            if ("tenant".equals(user.getRole())) {
+            if ("STUDENT".equals(user.getRole())) {
                 response.sendRedirect(request.getContextPath() + "/contract");
                 return;
             }
@@ -114,7 +114,7 @@ public class ContractServlet extends HttpServlet {
         if ("addTenant".equals(action)) {
             String contractIdStr = request.getParameter("contractId");
             String userIdStr = request.getParameter("userId");
-            if (contractIdStr != null && userIdStr != null && !"tenant".equals(user.getRole())) {
+            if (contractIdStr != null && userIdStr != null && !"STUDENT".equals(user.getRole())) {
                 Contract c = contractDAO.getById(Integer.parseInt(contractIdStr));
                 if (c != null && getContractsForUser(user).stream().anyMatch(a -> a.getId().equals(c.getId()))) {
                     contractUserDAO.insert(new ContractUser(Integer.parseInt(contractIdStr), Integer.parseInt(userIdStr)));
@@ -127,7 +127,7 @@ public class ContractServlet extends HttpServlet {
         if ("removeTenant".equals(action)) {
             String contractIdStr = request.getParameter("contractId");
             String userIdStr = request.getParameter("userId");
-            if (contractIdStr != null && userIdStr != null && !"tenant".equals(user.getRole())) {
+            if (contractIdStr != null && userIdStr != null && !"STUDENT".equals(user.getRole())) {
                 Contract c = contractDAO.getById(Integer.parseInt(contractIdStr));
                 if (c != null && getContractsForUser(user).stream().anyMatch(a -> a.getId().equals(c.getId())))
                     contractUserDAO.delete(Integer.parseInt(contractIdStr), Integer.parseInt(userIdStr));
@@ -137,7 +137,7 @@ public class ContractServlet extends HttpServlet {
         }
         if ("delete".equals(action)) {
             String idStr = request.getParameter("id");
-            if (idStr != null && !"tenant".equals(user.getRole())) {
+            if (idStr != null && !"STUDENT".equals(user.getRole())) {
                 Contract c = contractDAO.getById(Integer.parseInt(idStr));
                 if (c != null && getContractsForUser(user).stream().anyMatch(a -> a.getId().equals(c.getId())))
                     contractDAO.delete(Integer.parseInt(idStr));
@@ -145,7 +145,7 @@ public class ContractServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/contract");
             return;
         }
-        if ("save".equals(action) && !"tenant".equals(user.getRole())) {
+        if ("save".equals(action) && !"STUDENT".equals(user.getRole())) {
             String roomIdStr = request.getParameter("roomId");
             String startDateStr = request.getParameter("startDate");
             String endDateStr = request.getParameter("endDate");

@@ -41,20 +41,20 @@
                     <p><strong>Tiền cọc:</strong> <fmt:formatNumber value="${contract.deposit}" type="number"/> VNĐ</p>
                     <p><strong>Giá thuê:</strong> <fmt:formatNumber value="${contract.rentPrice}" type="number"/> VNĐ/tháng</p>
                     <p><strong>Trạng thái:</strong> ${contract.status}</p>
-                    <c:if test="${sessionScope.user.role != 'tenant'}">
+                    <c:if test="${sessionScope.user.role != 'STUDENT'}">
                         <a href="${pageContext.request.contextPath}/contract?action=edit&id=${contract.id}" class="btn btn-primary">Sửa hợp đồng</a>
                     </c:if>
                 </div>
                 <div class="card">
                     <h3>Người thuê</h3>
                     <table>
-                        <tr><th>Họ tên</th><th>Email</th><th>SĐT</th><c:if test="${sessionScope.user.role != 'tenant'}"><th>Thao tác</th></c:if></tr>
+                        <tr><th>Họ tên</th><th>Email</th><th>SĐT</th><c:if test="${sessionScope.user.role != 'STUDENT'}"><th>Thao tác</th></c:if></tr>
                         <c:forEach items="${tenantUsers}" var="u">
                             <tr>
                                 <td>${u.fullName}</td>
                                 <td>${u.email}</td>
                                 <td>${u.phone}</td>
-                                <c:if test="${sessionScope.user.role != 'tenant'}">
+                                <c:if test="${sessionScope.user.role != 'STUDENT'}">
                                     <td>
                                         <form action="${pageContext.request.contextPath}/contract" method="post" style="display:inline;" onsubmit="return confirm('Gỡ người thuê?');">
                                             <input type="hidden" name="action" value="removeTenant">
@@ -67,7 +67,7 @@
                             </tr>
                         </c:forEach>
                     </table>
-                    <c:if test="${sessionScope.user.role != 'tenant' && not empty availableTenants}">
+                    <c:if test="${sessionScope.user.role != 'STUDENT' && not empty availableTenants}">
                         <form action="${pageContext.request.contextPath}/contract" method="post" class="form-inline">
                             <input type="hidden" name="action" value="addTenant">
                             <input type="hidden" name="contractId" value="${contract.id}">

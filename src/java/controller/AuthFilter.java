@@ -42,7 +42,7 @@ public class AuthFilter implements Filter {
             return;
         }
         if (path.startsWith("/area") || path.startsWith("/subarea") || path.startsWith("/user")) {
-            if (!"admin".equals(user.getRole())) {
+            if (!"ADMIN".equals(user.getRole())) {
                 res.sendRedirect(req.getContextPath() + "/dashboard");
                 return;
             }

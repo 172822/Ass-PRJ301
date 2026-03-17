@@ -32,7 +32,7 @@
             <jsp:include page="../common/header.jsp"/>
             <div class="content">
                 <h1>Hóa đơn</h1>
-                <c:if test="${sessionScope.user.role != 'tenant'}">
+                <c:if test="${sessionScope.user.role != 'STUDENT'}">
                     <p><a href="${pageContext.request.contextPath}/invoice?action=add" class="btn btn-primary">Thêm hóa đơn</a></p>
                 </c:if>
                 <div class="card">
@@ -50,7 +50,7 @@
                                 <td>${i.status}</td>
                                 <td>
                                     <a href="${pageContext.request.contextPath}/invoice?action=view&id=${i.id}" class="btn btn-primary btn-small">Xem</a>
-                                    <c:if test="${sessionScope.user.role != 'tenant'}">
+                                    <c:if test="${sessionScope.user.role != 'STUDENT'}">
                                         <a href="${pageContext.request.contextPath}/invoice?action=edit&id=${i.id}" class="btn btn-primary btn-small">Sửa</a>
                                         <form action="${pageContext.request.contextPath}/invoice" method="post" style="display:inline;" onsubmit="return confirm('Xóa?');">
                                             <input type="hidden" name="action" value="delete">

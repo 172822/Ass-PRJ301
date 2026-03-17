@@ -19,7 +19,7 @@ public class SubAreaServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         User user = (User) request.getSession().getAttribute("user");
-        if (user == null || !"admin".equals(user.getRole())) {
+        if (user == null || !"ADMIN".equals(user.getRole())) {
             response.sendRedirect(request.getContextPath() + "/dashboard");
             return;
         }
@@ -49,7 +49,7 @@ public class SubAreaServlet extends HttpServlet {
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
         User user = (User) request.getSession().getAttribute("user");
-        if (user == null || !"admin".equals(user.getRole())) {
+        if (user == null || !"ADMIN".equals(user.getRole())) {
             response.sendRedirect(request.getContextPath() + "/dashboard");
             return;
         }
