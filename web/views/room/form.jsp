@@ -33,16 +33,20 @@
                 <h1>${room != null ? 'Sửa' : 'Thêm'} phòng</h1>
                 <c:if test="${not empty error}"><p class="error">${error}</p></c:if>
                 <div class="card">
+                    <c:set var="pickBoardingHouseId" value="${room != null ? room.boardingHouseId : prefillBoardingHouseId}"/>
                     <form action="${pageContext.request.contextPath}/room" method="post">
                         <c:if test="${room != null}"><input type="hidden" name="id" value="${room.id}"></c:if>
                         <div class="form-group">
                             <label>Nhà trọ</label>
                             <select name="boardingHouseId" required>
                                 <c:forEach items="${boardinghouses}" var="bh">
-                                    <option value="${bh.id}" ${(room != null && room.boardingHouseId == bh.id) || param.boardingHouseId == bh.id ? 'selected' : ''}>${bh.name}</option>
+                                    <option value="${bh.id}" ${pickBoardingHouseId != null && pickBoardingHouseId == bh.id ? 'selected' : ''}>${bh.name}</option>
                                 </c:forEach>
                             </select>
                         </div>
+                        <c:if test="${empty boardinghouses}">
+                            <p class="error">Chưa có nhà trọ. Vui lòng tạo nhà trọ trước khi thêm phòng.</p>
+                        </c:if>
                         <div class="form-group">
                             <label>Mã phòng</label>
                             <input type="text" name="roomCode" value="${room != null ? room.roomCode : ''}" required>
@@ -58,12 +62,11 @@
                         <div class="form-group">
                             <label>Trạng thái</label>
                             <select name="status">
-                                <option value="available" ${room != null && room.status == 'available' ? 'selected' : ''}>Trống</option>
-                                <option value="occupied" ${room != null && room.status == 'occupied' ? 'selected' : ''}>Đã thuê</option>
-                                <option value="maintenance" ${room != null && room.status == 'maintenance' ? 'selected' : ''}>Bảo trì</option>
+                                <option value="EMPTY" ${room != null && room.status == 'EMPTY' ? 'selected' : ''}>Trống</option>
+                                <option value="RENTED" ${room != null && room.status == 'RENTED' ? 'selected' : ''}>Đã thuê</option>
                             </select>
                         </div>
-                        <button type="submit" class="btn btn-primary">Lưu</button>
+                        <button type="submit" class="btn btn-primary" <c:if test="${empty boardinghouses}">disabled</c:if>>Lưu</button>
                         <a href="${pageContext.request.contextPath}/room" class="btn">Hủy</a>
                     </form>
                 </div>

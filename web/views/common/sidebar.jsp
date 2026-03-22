@@ -2,6 +2,9 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <div class="sidebar">
     <a href="${pageContext.request.contextPath}/dashboard">Dashboard</a>
+    <c:if test="${sessionScope.user.role == 'ADMIN' || sessionScope.user.role == 'LANDLORD' || sessionScope.user.role == 'STUDENT'}">
+        <a href="${pageContext.request.contextPath}/findroom">Tìm trọ</a>
+    </c:if>
     <c:if test="${sessionScope.user.role == 'ADMIN'}">
         <a href="${pageContext.request.contextPath}/area">Khu vực</a>
         <a href="${pageContext.request.contextPath}/subarea">Khu vực con</a>

@@ -42,7 +42,16 @@
                                 <td>${b.address}</td>
                                 <td><c:forEach items="${subareas}" var="s"><c:if test="${s.id == b.subAreaId}">${s.name}</c:if></c:forEach></td>
                                 <c:if test="${sessionScope.user.role == 'ADMIN'}">
-                                    <td>${b.landlordId}</td>
+                                    <td>
+                                        <c:choose>
+                                            <c:when test="${not empty landlordLabels[b.landlordId]}">
+                                                <c:out value="${landlordLabels[b.landlordId]}"/>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <span style="color:#94a3b8;">ID <c:out value="${b.landlordId}"/> <span style="font-size:0.85rem;">(không tìm thấy user)</span></span>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </td>
                                 </c:if>
                                 <td>
                                     <a href="${pageContext.request.contextPath}/boardinghouse?action=edit&id=${b.id}" class="btn btn-primary btn-small">Sửa</a>

@@ -17,6 +17,9 @@
         .btn { width: 100%; padding: 10px; background: #2563eb; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem; }
         .btn:hover { background: #1d4ed8; }
         .error { color: #dc2626; margin-bottom: 12px; font-size: 0.9rem; }
+        .success { color: #15803d; margin-bottom: 12px; font-size: 0.9rem; }
+        .footer-link { text-align: center; margin-top: 16px; font-size: 0.9rem; color: #64748b; }
+        .footer-link a { color: #2563eb; }
     </style>
 </head>
 <body>
@@ -36,6 +39,7 @@
             </div>
             <button type="submit" class="btn">Đăng nhập</button>
         </form>
+        <p class="footer-link">Chưa có tài khoản? <a href="${pageContext.request.contextPath}/register">Đăng ký</a></p>
     </div>
 </body>
 </html>

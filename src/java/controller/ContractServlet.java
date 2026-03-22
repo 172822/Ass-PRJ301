@@ -15,9 +15,13 @@ import models.ContractUser;
 import models.Room;
 import models.User;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.sql.Date;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class ContractServlet extends HttpServlet {
@@ -43,6 +47,23 @@ public class ContractServlet extends HttpServlet {
         List<Room> myRooms = getRoomsForUser(user);
         List<Integer> roomIds = myRooms.stream().map(Room::getId).collect(Collectors.toList());
         return contractDAO.getAll().stream().filter(c -> roomIds.contains(c.getRoomId())).collect(Collectors.toList());
+    }
+
+    /** Phòng + danh sách nhà trọ tương ứng cho form tạo/sửa hợp đồng. */
+    private List<Room> attachRoomsAndBoardingHousesForContractForm(HttpServletRequest request, User user) {
+        List<Room> rooms = getRoomsForUser(user);
+        request.setAttribute("rooms", rooms);
+        List<Integer> bhIds = rooms.stream()
+                .map(Room::getBoardingHouseId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .collect(Collectors.toList());
+        List<BoardingHouse> housesForContract = boardingHouseDAO.getAll().stream()
+                .filter(bh -> bh.getId() != null && bhIds.contains(bh.getId()))
+                .sorted(Comparator.comparing(BoardingHouse::getName, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)))
+                .collect(Collectors.toList());
+        request.setAttribute("boardingHousesForContract", housesForContract);
+        return rooms;
     }
 
     @Override
@@ -73,10 +94,40 @@ public class ContractServlet extends HttpServlet {
                             request.setAttribute("tenantUsers", tenants);
                         }
                         if ("edit".equals(action) && !"STUDENT".equals(user.getRole())) {
-                            request.setAttribute("rooms", getRoomsForUser(user));
+                            attachRoomsAndBoardingHousesForContractForm(request, user);
+                            Room cur = roomDAO.getById(c.getRoomId());
+                            if (cur != null && cur.getBoardingHouseId() != null) {
+                                request.setAttribute("preselectedBoardingHouseId", cur.getBoardingHouseId());
+                            }
+                            request.setAttribute("preselectedRoomId", c.getRoomId());
                         }
                         if (!"STUDENT".equals(user.getRole())) {
-                            request.setAttribute("availableTenants", userDAO.getByRole("STUDENT"));
+                            if ("view".equals(action)) {
+                                String tsParam = request.getParameter("tenantSearch");
+                                String ts = tsParam == null ? "" : tsParam.trim();
+                                List<Integer> linkedIds = contractUserDAO.getByContractId(c.getId()).stream()
+                                        .map(ContractUser::getUserId)
+                                        .collect(Collectors.toList());
+                                List<User> pool;
+                                if (ts.length() >= 2) {
+                                    pool = userDAO.searchActiveStudentsByEmailOrPhone(ts);
+                                    request.setAttribute("tenantSearchMode", Boolean.TRUE);
+                                } else {
+                                    pool = userDAO.getByRole("STUDENT");
+                                    request.setAttribute("tenantSearchMode", Boolean.FALSE);
+                                    if (ts.length() == 1) {
+                                        request.setAttribute("tenantSearchHint",
+                                                "Nhập ít nhất 2 ký tự để tìm theo email hoặc số điện thoại.");
+                                    }
+                                }
+                                List<User> available = pool.stream()
+                                        .filter(u -> u.getId() != null && !linkedIds.contains(u.getId()))
+                                        .collect(Collectors.toList());
+                                request.setAttribute("availableTenants", available);
+                                request.setAttribute("tenantSearch", tsParam == null ? "" : tsParam);
+                            } else {
+                                request.setAttribute("availableTenants", userDAO.getByRole("STUDENT"));
+                            }
                         }
                         request.getRequestDispatcher("/views/contract/" + action + ".jsp").forward(request, response);
                         return;
@@ -91,7 +142,23 @@ public class ContractServlet extends HttpServlet {
                 response.sendRedirect(request.getContextPath() + "/contract");
                 return;
             }
-            request.setAttribute("rooms", getRoomsForUser(user));
+            List<Room> rooms = attachRoomsAndBoardingHousesForContractForm(request, user);
+            Integer preRoom = null;
+            Integer preBh = null;
+            String roomIdStr = request.getParameter("roomId");
+            if (roomIdStr != null && !roomIdStr.isBlank()) {
+                try {
+                    int rid = Integer.parseInt(roomIdStr.trim());
+                    Room match = rooms.stream().filter(r -> r.getId() != null && r.getId() == rid).findFirst().orElse(null);
+                    if (match != null) {
+                        preRoom = rid;
+                        preBh = match.getBoardingHouseId();
+                    }
+                } catch (NumberFormatException ignored) {
+                }
+            }
+            request.setAttribute("preselectedRoomId", preRoom);
+            request.setAttribute("preselectedBoardingHouseId", preBh);
             request.getRequestDispatcher("/views/contract/form.jsp").forward(request, response);
             return;
         }
@@ -121,7 +188,18 @@ public class ContractServlet extends HttpServlet {
                 }
             }
             String cid = request.getParameter("contractId");
-            response.sendRedirect(request.getContextPath() + "/contract" + (cid != null ? "?action=view&id=" + cid : ""));
+            String tenantQ = request.getParameter("tenantSearch");
+            if (cid != null) {
+                StringBuilder redir = new StringBuilder(request.getContextPath())
+                        .append("/contract?action=view&id=")
+                        .append(cid);
+                if (tenantQ != null && !tenantQ.isBlank()) {
+                    redir.append("&tenantSearch=").append(URLEncoder.encode(tenantQ.trim(), StandardCharsets.UTF_8));
+                }
+                response.sendRedirect(redir.toString());
+            } else {
+                response.sendRedirect(request.getContextPath() + "/contract");
+            }
             return;
         }
         if ("removeTenant".equals(action)) {

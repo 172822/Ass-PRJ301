@@ -3,6 +3,7 @@ package dal;
 import models.Contract;
 import java.sql.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class ContractDAO extends DBContext {
 
@@ -82,6 +83,79 @@ public class ContractDAO extends DBContext {
             e.printStackTrace();
         }
         return list;
+    }
+
+    /**
+     * Với mỗi phòng, trả về id hợp đồng đang {@code active} (nếu có nhiều, lấy id lớn nhất).
+     */
+    public Map<Integer, Integer> getActiveContractIdByRoomIds(Collection<Integer> roomIds) {
+        Map<Integer, Integer> map = new HashMap<>();
+        if (roomIds == null || roomIds.isEmpty()) {
+            return map;
+        }
+        List<Integer> ids = roomIds.stream().filter(Objects::nonNull).distinct().collect(Collectors.toList());
+        if (ids.isEmpty()) {
+            return map;
+        }
+        StringBuilder sql = new StringBuilder(
+                "SELECT id, room_id FROM contract WHERE status = 'active' AND room_id IN (");
+        for (int i = 0; i < ids.size(); i++) {
+            if (i > 0) {
+                sql.append(",");
+            }
+            sql.append("?");
+        }
+        sql.append(")");
+        try {
+            PreparedStatement st = connection.prepareStatement(sql.toString());
+            for (int i = 0; i < ids.size(); i++) {
+                st.setInt(i + 1, ids.get(i));
+            }
+            ResultSet rs = st.executeQuery();
+            while (rs.next()) {
+                int cid = rs.getInt("id");
+                int rid = rs.getInt("room_id");
+                map.merge(rid, cid, Math::max);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return map;
+    }
+
+    /** Mỗi phòng → id hợp đồng mới nhất (id lớn nhất), mọi trạng thái. */
+    public Map<Integer, Integer> getLatestContractIdByRoomIds(Collection<Integer> roomIds) {
+        Map<Integer, Integer> map = new HashMap<>();
+        if (roomIds == null || roomIds.isEmpty()) {
+            return map;
+        }
+        List<Integer> ids = roomIds.stream().filter(Objects::nonNull).distinct().collect(Collectors.toList());
+        if (ids.isEmpty()) {
+            return map;
+        }
+        StringBuilder sql = new StringBuilder("SELECT id, room_id FROM contract WHERE room_id IN (");
+        for (int i = 0; i < ids.size(); i++) {
+            if (i > 0) {
+                sql.append(",");
+            }
+            sql.append("?");
+        }
+        sql.append(")");
+        try {
+            PreparedStatement st = connection.prepareStatement(sql.toString());
+            for (int i = 0; i < ids.size(); i++) {
+                st.setInt(i + 1, ids.get(i));
+            }
+            ResultSet rs = st.executeQuery();
+            while (rs.next()) {
+                int cid = rs.getInt("id");
+                int rid = rs.getInt("room_id");
+                map.merge(rid, cid, Math::max);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return map;
     }
 
     public List<Contract> getByUserId(int userId) {

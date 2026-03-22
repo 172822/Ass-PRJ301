@@ -44,6 +44,22 @@ public class SubAreaDAO extends DBContext {
         return null;
     }
 
+    public List<SubArea> getByAreaId(int areaId) {
+        List<SubArea> list = new ArrayList<>();
+        String sql = "SELECT * FROM sub_area WHERE area_id = ? ORDER BY name";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, areaId);
+            ResultSet rs = st.executeQuery();
+            while (rs.next()) {
+                list.add(new SubArea(rs.getInt("id"), rs.getInt("area_id"), rs.getString("name")));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     public void insert(SubArea s) {
 
         String sql = "INSERT INTO sub_area(area_id,name) VALUES(?,?)";

@@ -19,9 +19,13 @@
         .form-group { margin-bottom: 16px; }
         label { display: block; margin-bottom: 6px; }
         input[type="text"], select { width: 100%; padding: 8px; }
+        input[type="file"] { width: 100%; }
         .btn { padding: 8px 16px; border-radius: 4px; border: none; cursor: pointer; text-decoration: none; display: inline-block; }
         .btn-primary { background: #2563eb; color: #fff; }
         .error { color: #dc2626; margin-bottom: 8px; }
+        .hint { color: #64748b; font-size: 0.85rem; margin-top: 4px; }
+        .thumb-preview { max-width: 100%; max-height: 200px; border-radius: 6px; margin-top: 8px; border: 1px solid #e2e8f0; display: block; }
+        .open-full-photo { display: inline-block; margin-top: 8px; font-size: 0.9rem; }
     </style>
 </head>
 <body>
@@ -33,7 +37,7 @@
                 <h1>${boardinghouse != null ? 'Sửa' : 'Thêm'} nhà trọ</h1>
                 <c:if test="${not empty error}"><p class="error">${error}</p></c:if>
                 <div class="card">
-                    <form action="${pageContext.request.contextPath}/boardinghouse" method="post">
+                    <form action="${pageContext.request.contextPath}/boardinghouse" method="post" enctype="multipart/form-data">
                         <c:if test="${boardinghouse != null}"><input type="hidden" name="id" value="${boardinghouse.id}"></c:if>
                         <c:if test="${sessionScope.user.role == 'ADMIN'}">
                             <div class="form-group">
@@ -62,6 +66,21 @@
                         <div class="form-group">
                             <label>Địa chỉ</label>
                             <input type="text" name="address" value="${boardinghouse != null ? boardinghouse.address : ''}">
+                        </div>
+                        <div class="form-group">
+                            <label for="image">Ảnh nhà trọ</label>
+                            <input type="file" id="image" name="image" accept="image/jpeg,image/png,image/webp">
+                            <p class="hint">JPEG, PNG hoặc WebP, tối đa 5 MB. Ảnh lưu trên máy chủ (thư mục uploads).</p>
+                            <c:if test="${boardinghouse != null && not empty boardinghouse.imagePath}">
+                                <p class="hint">Ảnh hiện tại (bấm ảnh hoặc liên kết bên dưới để xem cỡ lớn):</p>
+                                <a href="${pageContext.request.contextPath}/${boardinghouse.imagePath}" target="_blank" rel="noopener noreferrer" title="Xem ảnh đầy đủ">
+                                    <img class="thumb-preview" src="${pageContext.request.contextPath}/${boardinghouse.imagePath}" alt="Ảnh nhà trọ">
+                                </a>
+                                <a class="open-full-photo" href="${pageContext.request.contextPath}/${boardinghouse.imagePath}" target="_blank" rel="noopener noreferrer">Mở ảnh cỡ lớn</a>
+                                <div style="margin-top:8px;">
+                                    <label><input type="checkbox" name="removeImage" value="1"> Xóa ảnh hiện tại</label>
+                                </div>
+                            </c:if>
                         </div>
                         <button type="submit" class="btn btn-primary">Lưu</button>
                         <a href="${pageContext.request.contextPath}/boardinghouse" class="btn">Hủy</a>

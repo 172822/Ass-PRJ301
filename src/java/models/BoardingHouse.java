@@ -14,6 +14,8 @@ public class BoardingHouse {
     private Integer subAreaId;
     private String name;
     private String address;
+    /** Đường dẫn tương đối trong webapp, ví dụ {@code uploads/boarding/uuid.jpg} */
+    private String imagePath;
 
     public Integer getId() {
         return id;
@@ -55,12 +57,25 @@ public class BoardingHouse {
         this.address = address;
     }
 
+    public String getImagePath() {
+        return imagePath;
+    }
+
+    public void setImagePath(String imagePath) {
+        this.imagePath = imagePath;
+    }
+
     public BoardingHouse(Integer id, Integer landlordId, Integer subAreaId, String name, String address) {
+        this(id, landlordId, subAreaId, name, address, null);
+    }
+
+    public BoardingHouse(Integer id, Integer landlordId, Integer subAreaId, String name, String address, String imagePath) {
         this.id = id;
         this.landlordId = landlordId;
         this.subAreaId = subAreaId;
         this.name = name;
         this.address = address;
+        this.imagePath = imagePath;
     }
 
     public BoardingHouse() {

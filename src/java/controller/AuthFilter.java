@@ -28,8 +28,9 @@ public class AuthFilter implements Filter {
         HttpSession session = req.getSession(false);
         String path = req.getRequestURI().substring(req.getContextPath().length());
 
-        boolean allowed = path.equals("/login") || path.startsWith("/logout")
-                || path.startsWith("/css/") || path.startsWith("/js/") || path.startsWith("/img/");
+        boolean allowed = path.equals("/login") || path.equals("/register") || path.startsWith("/logout")
+                || path.startsWith("/css/") || path.startsWith("/js/") || path.startsWith("/img/")
+                || path.startsWith("/uploads/");
 
         if (allowed) {
             chain.doFilter(request, response);
