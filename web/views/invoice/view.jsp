@@ -15,8 +15,8 @@
         .sidebar a:hover { color: #fff; }
         .sidebar a.active { background: #2563eb; color: #fff; padding-left: 8px; }
         .main { flex: 1; display: flex; flex-direction: column; margin-left: 200px; margin-top: 60px; }
-        .header { position: fixed; top: 0; right: 0; left: 200px; background: #fff; padding: 16px 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); min-height: 60px; z-index: 99; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
-        .header h2 { margin: 0; font-size: 1.25rem; flex-shrink: 0; }
+        .header { position: fixed; top: 0; right: 0; left: 200px; background: #fff; padding: 16px 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); height: 60px; z-index: 99; display: flex; justify-content: space-between; align-items: center; }
+        .header h2 { margin: 0; font-size: 1.25rem; }
         .user-info { display: flex; align-items: center; gap: 12px; }
         .user-info span { color: #334155; }
         .logout-btn { background: #dc2626; color: #fff; border: none; padding: 8px 16px; border-radius: 4px; font-size: 0.875rem; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; }
