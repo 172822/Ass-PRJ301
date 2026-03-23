@@ -24,10 +24,6 @@
         .filter-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-bottom: 12px; }
         .filter-row label { display: block; font-size: 0.875rem; margin-bottom: 4px; color: #475569; }
         .filter-row select, .filter-row input[type="text"] { padding: 8px; min-width: 180px; }
-        .fr-thumb { width: 64px; height: 64px; object-fit: cover; border-radius: 6px; background: #e2e8f0; display: block; }
-        .photo-view { display: inline-block; text-align: center; text-decoration: none; color: #2563eb; font-size: 0.75rem; max-width: 80px; vertical-align: middle; }
-        .photo-view:hover .fr-thumb { outline: 2px solid #2563eb; outline-offset: 2px; }
-        .photo-view span { display: block; margin-top: 4px; }
     </style>
 </head>
 <body>
@@ -74,7 +70,6 @@
                 <div class="card">
                     <table>
                         <tr>
-                            <th>Ảnh</th>
                             <th>Tên nhà trọ</th>
                             <th>Địa chỉ</th>
                             <th>Khu vực con</th>
@@ -84,22 +79,11 @@
                         </tr>
                         <c:choose>
                             <c:when test="${empty results}">
-                                <tr><td colspan="7">Không có nhà trọ phù hợp.</td></tr>
+                                <tr><td colspan="6">Không có nhà trọ phù hợp.</td></tr>
                             </c:when>
                             <c:otherwise>
                                 <c:forEach items="${results}" var="row">
                                     <tr>
-                                        <td>
-                                            <c:choose>
-                                                <c:when test="${not empty row.imagePath}">
-                                                    <a class="photo-view" href="${pageContext.request.contextPath}/${row.imagePath}" target="_blank" rel="noopener noreferrer" title="Mở ảnh đầy đủ">
-                                                        <img class="fr-thumb" src="${pageContext.request.contextPath}/${row.imagePath}" alt="Ảnh nhà trọ">
-                                                        <span>Xem ảnh</span>
-                                                    </a>
-                                                </c:when>
-                                                <c:otherwise><span style="color:#94a3b8;">—</span></c:otherwise>
-                                            </c:choose>
-                                        </td>
                                         <td>${row.name}</td>
                                         <td>${row.address}</td>
                                         <td>${row.subAreaName}</td>
@@ -123,7 +107,7 @@
                                                     <c:url var="loginForRoomUrl" value="/login">
                                                         <c:param name="next" value="/room?boardingHouseId=${row.id}"/>
                                                     </c:url>
-                                                    <a href="${loginForRoomUrl}" class="btn btn-primary btn-small">Đăng nhập</a>
+                                                    <a href="${loginForRoomUrl}" class="btn btn-primary btn-small">Xem phòng</a>
                                                     <span style="display:block;font-size:0.75rem;color:#64748b;margin-top:4px;">để xem danh sách phòng</span>
                                                 </c:otherwise>
                                             </c:choose>

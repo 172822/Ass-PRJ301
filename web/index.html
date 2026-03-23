@@ -5,7 +5,10 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Tìm trọ - Quản lý trọ</title>
         <script>
-            window.location.href = window.location.origin + window.location.pathname.replace(/\/index\.html?$/, '') + '/findroom';
+            // Redirect to /findroom on root access
+            var ctx = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
+            if (!ctx) ctx = '/'; // Fallback for root
+            window.location.href = window.location.origin + ctx + '/findroom';
         </script>
     </head>
     <body>

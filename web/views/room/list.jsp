@@ -30,9 +30,6 @@
         .contact-card dt { color: #64748b; font-size: 0.8rem; margin-top: 8px; }
         .contact-card dt:first-child { margin-top: 0; }
         .contact-card dd { margin: 2px 0 0 0; font-weight: 500; }
-        .bh-photo-block { margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #e2e8f0; }
-        .bh-photo-block .bh-photo { max-width: 100%; max-height: 280px; width: auto; height: auto; object-fit: contain; border-radius: 8px; border: 1px solid #e2e8f0; background: #f8fafc; display: block; }
-        .bh-photo-block .open-full { display: inline-block; margin-top: 10px; font-size: 0.9rem; }
     </style>
 </head>
 <body>
@@ -74,29 +71,6 @@
                     <p><a href="${pageContext.request.contextPath}/room?action=add<c:if test="${filterBoardingHouseId != null}">&boardingHouseId=${filterBoardingHouseId}</c:if>" class="btn btn-primary">Thêm phòng</a></p>
                 </c:if>
                 <div class="card">
-                    <c:if test="${filterBoardingHouseId != null}">
-                        <c:forEach items="${boardinghouses}" var="bh">
-                            <c:if test="${bh.id == filterBoardingHouseId}">
-                                <c:choose>
-                                    <c:when test="${not empty bh.imagePath}">
-                                        <div class="bh-photo-block">
-                                            <p style="margin:0 0 10px 0;color:#334155;"><strong>Ảnh nhà trọ</strong> — <c:out value="${bh.name}"/></p>
-                                            <a href="${pageContext.request.contextPath}/${bh.imagePath}" target="_blank" rel="noopener noreferrer" title="Xem ảnh đầy đủ">
-                                                <img class="bh-photo" src="${pageContext.request.contextPath}/${bh.imagePath}" alt="Ảnh nhà trọ">
-                                            </a>
-                                            <a class="open-full" href="${pageContext.request.contextPath}/${bh.imagePath}" target="_blank" rel="noopener noreferrer">Mở ảnh cỡ lớn</a>
-                                        </div>
-                                    </c:when>
-                                    <c:otherwise>
-                                        <p class="hint bh-photo-block" style="border-bottom:1px solid #e2e8f0;">Nhà trọ <strong><c:out value="${bh.name}"/></strong> chưa có ảnh.<c:if test="${!roomListReadOnly}"> Thêm ảnh tại <a href="${pageContext.request.contextPath}/boardinghouse?action=edit&amp;id=${bh.id}">Sửa nhà trọ</a>.</c:if></p>
-                                    </c:otherwise>
-                                </c:choose>
-                            </c:if>
-                        </c:forEach>
-                    </c:if>
-                    <c:if test="${filterBoardingHouseId == null && !roomListReadOnly}">
-                        <p class="hint" style="margin-top:0;">Chọn nhà trọ ở bộ lọc phía trên để xem ảnh nhà trọ (một ảnh cho cả danh sách phòng).</p>
-                    </c:if>
                     <table>
                         <tr>
                             <th>ID</th><th>Nhà trọ</th><th>Mã phòng</th><th>Giá</th><th>Số người tối đa</th><th>Trạng thái</th>
