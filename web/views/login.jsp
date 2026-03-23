@@ -28,7 +28,14 @@
         <c:if test="${not empty error}">
             <p class="error">${error}</p>
         </c:if>
+        <c:set var="nextVal" value="${param.next}"/>
+        <c:if test="${empty nextVal && not empty requestScope.loginNext}">
+            <c:set var="nextVal" value="${requestScope.loginNext}"/>
+        </c:if>
         <form action="${pageContext.request.contextPath}/login" method="post">
+            <c:if test="${not empty nextVal}">
+                <input type="hidden" name="next" value="<c:out value='${nextVal}'/>">
+            </c:if>
             <div class="form-group">
                 <label for="email">Email</label>
                 <input type="text" id="email" name="email" value="${param.email}" required>
@@ -40,6 +47,7 @@
             <button type="submit" class="btn">Đăng nhập</button>
         </form>
         <p class="footer-link">Chưa có tài khoản? <a href="${pageContext.request.contextPath}/register">Đăng ký</a></p>
+        <p class="footer-link"><a href="${pageContext.request.contextPath}/findroom">Xem danh sách nhà trọ (không cần đăng nhập)</a></p>
     </div>
 </body>
 </html>

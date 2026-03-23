@@ -88,6 +88,22 @@ public class UserDAO extends DBContext {
         return false;
     }
 
+    public boolean existsByPhone(String phone) {
+        if (phone == null || phone.isBlank()) {
+            return false;
+        }
+        String sql = "SELECT 1 FROM [user] WHERE phone = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1, phone.trim());
+            ResultSet rs = st.executeQuery();
+            return rs.next();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     public List<User> getByRole(String role) {
         List<User> list = new ArrayList<>();
         String sql = "SELECT * FROM [user] WHERE role = ? AND is_active = 1";

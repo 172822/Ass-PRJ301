@@ -13,6 +13,7 @@ public class RegisterServlet extends HttpServlet {
 
     private static final Pattern EMAIL_PATTERN = Pattern.compile(
             "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$");
+    private static final Pattern PHONE_PATTERN = Pattern.compile("^0\\d{9}$");
 
     private final UserDAO userDAO = new UserDAO();
 
@@ -54,6 +55,22 @@ public class RegisterServlet extends HttpServlet {
             request.getRequestDispatcher("/views/register.jsp").forward(request, response);
             return;
         }
+        if (phone == null || phone.trim().isEmpty()) {
+            request.setAttribute("error", "Vui lòng nhập số điện thoại.");
+            request.getRequestDispatcher("/views/register.jsp").forward(request, response);
+            return;
+        }
+        String phoneTrim = phone.trim();
+        if (!PHONE_PATTERN.matcher(phoneTrim).matches()) {
+            request.setAttribute("error", "Số điện thoại phải là 10 số bắt đầu bằng 0.");
+            request.getRequestDispatcher("/views/register.jsp").forward(request, response);
+            return;
+        }
+        if (userDAO.existsByPhone(phoneTrim)) {
+            request.setAttribute("error", "Số điện thoại này đã được đăng ký.");
+            request.getRequestDispatcher("/views/register.jsp").forward(request, response);
+            return;
+        }
         if (password == null || password.length() < 6) {
             request.setAttribute("error", "Mật khẩu cần ít nhất 6 ký tự.");
             request.getRequestDispatcher("/views/register.jsp").forward(request, response);
@@ -73,7 +90,7 @@ public class RegisterServlet extends HttpServlet {
         User u = new User();
         u.setFullName(fullName.trim());
         u.setEmail(emailTrim);
-        u.setPhone(phone != null ? phone.trim() : "");
+        u.setPhone(phoneTrim);
         u.setCccd(cccd != null ? cccd.trim() : "");
         u.setRole("STUDENT");
         u.setIsActive(true);

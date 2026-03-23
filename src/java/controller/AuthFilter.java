@@ -29,6 +29,7 @@ public class AuthFilter implements Filter {
         String path = req.getRequestURI().substring(req.getContextPath().length());
 
         boolean allowed = path.equals("/login") || path.equals("/register") || path.startsWith("/logout")
+                || path.equals("/findroom")
                 || path.startsWith("/css/") || path.startsWith("/js/") || path.startsWith("/img/")
                 || path.startsWith("/uploads/");
 

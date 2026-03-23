@@ -9,7 +9,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import models.BoardingHouseListItem;
 import models.SubArea;
-import models.User;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -36,12 +35,17 @@ public class FindRoomServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        User user = (User) request.getSession().getAttribute("user");
-        if (user == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
+        String action = request.getParameter("action");
+        
+        // Return sub-areas as JSON (for AJAX)
+        if ("getSubAreas".equals(action)) {
+            Integer areaId = parseIntOrNull(request.getParameter("areaId"));
+            response.setContentType("application/json; charset=UTF-8");
+            response.getWriter().write(getSubAreasJson(areaId));
             return;
         }
 
+        // Normal HTML response
         Integer areaId = parseIntOrNull(request.getParameter("areaId"));
         Integer subAreaId = parseIntOrNull(request.getParameter("subAreaId"));
         String q = request.getParameter("q");
@@ -76,5 +80,34 @@ public class FindRoomServlet extends HttpServlet {
         request.setAttribute("q", q != null ? q : "");
 
         request.getRequestDispatcher("/views/findroom.jsp").forward(request, response);
+    }
+
+    private String getSubAreasJson(Integer areaId) {
+        List<SubArea> subAreas = new ArrayList<>();
+        if (areaId != null) {
+            subAreas = subAreaDAO.getAll().stream()
+                    .filter(s -> areaId.equals(s.getAreaId()))
+                    .sorted(Comparator.comparing(SubArea::getName, Comparator.nullsLast(String::compareToIgnoreCase)))
+                    .collect(Collectors.toList());
+        }
+        
+        StringBuilder json = new StringBuilder("[");
+        for (int i = 0; i < subAreas.size(); i++) {
+            SubArea sa = subAreas.get(i);
+            if (i > 0) json.append(",");
+            json.append("{\"id\":").append(sa.getId())
+                .append(",\"name\":\"").append(escapeJson(sa.getName())).append("\"}");
+        }
+        json.append("]");
+        return json.toString();
+    }
+
+    private String escapeJson(String str) {
+        if (str == null) return "";
+        return str.replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t");
     }
 }

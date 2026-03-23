@@ -48,7 +48,7 @@
             </div>
             <div class="form-group">
                 <label for="phone">Số điện thoại</label>
-                <input type="text" id="phone" name="phone" value="<c:out value='${registerPhone}'/>" autocomplete="tel">
+                <input type="text" id="phone" name="phone" value="<c:out value='${registerPhone}'/>" required autocomplete="tel" placeholder="0123456789">
             </div>
             <div class="form-group">
                 <label for="cccd">CCCD (tuỳ chọn)</label>
