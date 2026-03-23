@@ -15,13 +15,12 @@
         .sidebar a:hover { color: #fff; }
         .sidebar a.active { background: #2563eb; color: #fff; padding-left: 8px; }
         .main { flex: 1; display: flex; flex-direction: column; margin-left: 200px; margin-top: 60px; }
-        .header { position: fixed; top: 0; right: 0; left: 200px; background: #fff; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); height: 60px; z-index: 99; }
-        .header h2 { margin: 0; font-size: 1.25rem; }
+        .header { position: fixed; top: 0; right: 0; left: 200px; background: #fff; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); min-height: 60px; z-index: 99; }
+        .header h2 { margin: 0; font-size: 1.25rem; flex-shrink: 0; }
         .user-info { display: flex; align-items: center; gap: 12px; }
         .user-info span { color: #334155; }
         .logout-btn { background: #dc2626; color: #fff; border: none; padding: 8px 16px; border-radius: 4px; font-size: 0.875rem; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; }
         .logout-btn:hover { background: #b91c1c; }
-        .user-info a { margin-left: 12px; color: #2563eb; text-decoration: none; }
         .content { padding: 24px; flex: 1; }
         .footer { padding: 12px 24px; background: #e2e8f0; font-size: 0.875rem; color: #64748b; }
         .card { background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
