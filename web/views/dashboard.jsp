@@ -52,7 +52,7 @@
                         <a href="${pageContext.request.contextPath}/boardinghouse?action=add">Thêm nhà trọ</a> |
                         <a href="${pageContext.request.contextPath}/room?action=add">Thêm phòng</a> |
                         <a href="${pageContext.request.contextPath}/contract?action=add">Thêm hợp đồng</a> |
-                        <a href="${pageContext.request.contextPath}/meterreading?action=add">Nhập chỉ số</a> |
+                        <a href="${pageContext.request.contextPath}/meterreading?action=add">Thêm số điện nước</a> |
                         <a href="${pageContext.request.contextPath}/invoice?action=add">Tạo hóa đơn</a>
                     </p>
                 </c:if>

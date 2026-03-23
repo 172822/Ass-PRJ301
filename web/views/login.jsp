@@ -47,7 +47,6 @@
             <button type="submit" class="btn">Đăng nhập</button>
         </form>
         <p class="footer-link">Chưa có tài khoản? <a href="${pageContext.request.contextPath}/register">Đăng ký</a></p>
-        <p class="footer-link"><a href="${pageContext.request.contextPath}/findroom">Xem danh sách nhà trọ (không cần đăng nhập)</a></p>
     </div>
 </body>
 </html>

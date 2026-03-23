@@ -93,7 +93,6 @@
                                                 <c:when test="${not empty row.landlordFullName || not empty row.landlordPhone || not empty row.landlordEmail}">
                                                     <c:if test="${not empty row.landlordFullName}"><strong><c:out value="${row.landlordFullName}"/></strong><br></c:if>
                                                     <c:if test="${not empty row.landlordPhone}"><span style="color:#64748b;font-size:0.85rem;">ĐT:</span> <c:out value="${row.landlordPhone}"/><br></c:if>
-                                                    <c:if test="${not empty row.landlordEmail}"><span style="color:#64748b;font-size:0.85rem;">Email:</span> <c:out value="${row.landlordEmail}"/></c:if>
                                                 </c:when>
                                                 <c:otherwise>—</c:otherwise>
                                             </c:choose>
@@ -108,7 +107,6 @@
                                                         <c:param name="next" value="/room?boardingHouseId=${row.id}"/>
                                                     </c:url>
                                                     <a href="${loginForRoomUrl}" class="btn btn-primary btn-small">Xem phòng</a>
-                                                    <span style="display:block;font-size:0.75rem;color:#64748b;margin-top:4px;">để xem danh sách phòng</span>
                                                 </c:otherwise>
                                             </c:choose>
                                         </td>
