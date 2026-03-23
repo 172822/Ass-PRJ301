@@ -79,8 +79,7 @@
                             <label>Trạng thái</label>
                             <select name="status">
                                 <option value="active" ${contract.status == 'active' ? 'selected' : ''}>Đang hoạt động</option>
-                                <option value="expired" ${contract.status == 'expired' ? 'selected' : ''}>Hết hạn</option>
-                                <option value="cancelled" ${contract.status == 'cancelled' ? 'selected' : ''}>Đã hủy</option>
+                                <option value="ended" ${contract.status == 'ended' ? 'selected' : ''}>Đã kết thúc</option>
                             </select>
                         </div>
                         <button type="submit" class="btn btn-primary">Lưu</button>

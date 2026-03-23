@@ -91,8 +91,7 @@
                                     <label>Trạng thái</label>
                                     <select name="status">
                                         <option value="active">Đang hoạt động</option>
-                                        <option value="expired">Hết hạn</option>
-                                        <option value="cancelled">Đã hủy</option>
+                                        <option value="ended">Đã kết thúc</option>
                                     </select>
                                 </div>
                                 <button type="submit" class="btn btn-primary">Tạo hợp đồng</button>
