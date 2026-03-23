@@ -40,6 +40,19 @@ public class ContractServlet extends HttpServlet {
         return roomDAO.getAll().stream().filter(r -> houseIds.contains(r.getBoardingHouseId())).collect(Collectors.toList());
     }
 
+    private List<BoardingHouse> getBoardingHousesForUser(User user) {
+        if (user == null) return List.of();
+        if ("ADMIN".equals(user.getRole())) return boardingHouseDAO.getAll();
+        if ("STUDENT".equals(user.getRole())) return List.of();
+        return boardingHouseDAO.getByLandlordId(user.getId());
+    }
+
+    private List<Room> getRoomsByBoardingHouse(Integer boardingHouseId, User user) {
+        List<Room> allRooms = getRoomsForUser(user);
+        if (boardingHouseId == null) return allRooms;
+        return allRooms.stream().filter(r -> r.getBoardingHouseId().equals(boardingHouseId)).collect(Collectors.toList());
+    }
+
     private List<Contract> getContractsForUser(User user) {
         if (user == null) return List.of();
         if ("STUDENT".equals(user.getRole())) return contractDAO.getByUserId(user.getId());
@@ -157,14 +170,36 @@ public class ContractServlet extends HttpServlet {
                 } catch (NumberFormatException ignored) {
                 }
             }
+            String bhIdStr = request.getParameter("boardingHouseId");
+            if (bhIdStr != null && !bhIdStr.isEmpty() && preBh == null) {
+                try {
+                    preBh = Integer.parseInt(bhIdStr.trim());
+                } catch (NumberFormatException ignored) {
+                }
+            }
             request.setAttribute("preselectedRoomId", preRoom);
             request.setAttribute("preselectedBoardingHouseId", preBh);
             request.getRequestDispatcher("/views/contract/form.jsp").forward(request, response);
             return;
         }
-        request.setAttribute("contracts", getContractsForUser(user));
+        
+        String boardingHouseIdStr = request.getParameter("boardingHouseId");
+        Integer filterBoardingHouseId = null;
+        if (boardingHouseIdStr != null && !boardingHouseIdStr.isEmpty()) {
+            filterBoardingHouseId = Integer.parseInt(boardingHouseIdStr);
+        }
+        
+        List<Contract> allUserContracts = getContractsForUser(user);
+        List<Room> filteredRooms = getRoomsByBoardingHouse(filterBoardingHouseId, user);
+        List<Integer> filteredRoomIds = filteredRooms.stream().map(Room::getId).collect(Collectors.toList());
+        List<Contract> filteredContracts = allUserContracts.stream()
+                .filter(c -> filteredRoomIds.contains(c.getRoomId()))
+                .collect(Collectors.toList());
+        
+        request.setAttribute("contracts", filteredContracts);
         request.setAttribute("rooms", roomDAO.getAll());
-        request.setAttribute("boardinghouses", boardingHouseDAO.getAll());
+        request.setAttribute("boardinghouses", getBoardingHousesForUser(user));
+        request.setAttribute("filterBoardingHouseId", filterBoardingHouseId);
         request.getRequestDispatcher("/views/contract/list.jsp").forward(request, response);
     }
 

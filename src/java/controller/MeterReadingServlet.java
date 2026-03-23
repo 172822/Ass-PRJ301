@@ -29,6 +29,26 @@ public class MeterReadingServlet extends HttpServlet {
         return roomDAO.getAll().stream().filter(r -> houseIds.contains(r.getBoardingHouseId())).collect(Collectors.toList());
     }
 
+    private List<BoardingHouse> getBoardingHousesForUser(User user) {
+        if (user == null) return List.of();
+        if ("ADMIN".equals(user.getRole())) return boardingHouseDAO.getAll();
+        return boardingHouseDAO.getByLandlordId(user.getId());
+    }
+
+    private List<Room> getRoomsByBoardingHouse(Integer boardingHouseId, User user) {
+        List<Room> allRooms = getRoomsForUser(user);
+        if (boardingHouseId == null) return allRooms;
+        return allRooms.stream().filter(r -> r.getBoardingHouseId().equals(boardingHouseId)).collect(Collectors.toList());
+    }
+
+    private MeterReading getPreviousMeterReading(int roomId, int month, int year) {
+        if (month > 1) {
+            return meterReadingDAO.getByRoomIdAndMonthYear(roomId, month - 1, year);
+        } else {
+            return meterReadingDAO.getByRoomIdAndMonthYear(roomId, 12, year - 1);
+        }
+    }
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -46,21 +66,50 @@ public class MeterReadingServlet extends HttpServlet {
                     request.setAttribute("meterreading", m);
                 }
             }
+            request.setAttribute("boardinghouses", getBoardingHousesForUser(user));
             request.setAttribute("rooms", getRoomsForUser(user));
             request.getRequestDispatcher("/views/meterreading/form.jsp").forward(request, response);
             return;
         }
         if ("add".equals(action)) {
+            request.setAttribute("boardinghouses", getBoardingHousesForUser(user));
             request.setAttribute("rooms", getRoomsForUser(user));
             request.getRequestDispatcher("/views/meterreading/form.jsp").forward(request, response);
             return;
         }
+        if ("getPrevious".equals(action)) {
+            String roomIdStr = request.getParameter("roomId");
+            String monthStr = request.getParameter("month");
+            String yearStr = request.getParameter("year");
+            if (roomIdStr != null && monthStr != null && yearStr != null) {
+                int roomId = Integer.parseInt(roomIdStr);
+                if (getRoomsForUser(user).stream().anyMatch(r -> r.getId() == roomId)) {
+                    int month = Integer.parseInt(monthStr);
+                    int year = Integer.parseInt(yearStr);
+                    MeterReading previous = meterReadingDAO.getByRoomIdAndMonthYear(roomId, month, year);
+                    response.setContentType("application/json; charset=UTF-8");
+                    if (previous != null) {
+                        response.getWriter().write("{\"found\":true,\"electricEnd\":" + previous.getElectricEnd() + ",\"waterEnd\":" + previous.getWaterEnd() + "}");
+                    } else {
+                        response.getWriter().write("{\"found\":false}");
+                    }
+                }
+            }
+            return;
+        }
+        String boardingHouseIdStr = request.getParameter("boardingHouseId");
+        Integer filterBoardingHouseId = null;
+        if (boardingHouseIdStr != null && !boardingHouseIdStr.isEmpty()) {
+            filterBoardingHouseId = Integer.parseInt(boardingHouseIdStr);
+        }
         List<MeterReading> all = meterReadingDAO.getAll();
-        List<Room> myRooms = getRoomsForUser(user);
+        List<Room> myRooms = getRoomsByBoardingHouse(filterBoardingHouseId, user);
         List<Integer> roomIds = myRooms.stream().map(Room::getId).collect(Collectors.toList());
         List<MeterReading> list = all.stream().filter(m -> roomIds.contains(m.getRoomId())).collect(Collectors.toList());
         request.setAttribute("meterreadings", list);
         request.setAttribute("rooms", myRooms);
+        request.setAttribute("boardinghouses", getBoardingHousesForUser(user));
+        request.setAttribute("filterBoardingHouseId", filterBoardingHouseId);
         request.getRequestDispatcher("/views/meterreading/list.jsp").forward(request, response);
     }
 

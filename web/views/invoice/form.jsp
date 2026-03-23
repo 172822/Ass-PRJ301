@@ -21,6 +21,7 @@
         input[type="text"], input[type="number"], select { width: 100%; padding: 8px; }
         .btn { padding: 8px 16px; border-radius: 4px; border: none; cursor: pointer; text-decoration: none; display: inline-block; }
         .btn-primary { background: #2563eb; color: #fff; }
+        .hint { color: #64748b; font-size: 0.85rem; margin-top: 4px; }
     </style>
 </head>
 <body>
@@ -35,12 +36,42 @@
                         <input type="hidden" name="action" value="save">
                         <c:if test="${invoice != null}"><input type="hidden" name="id" value="${invoice.id}"></c:if>
                         <div class="form-group">
+                            <label>Nhà trọ</label>
+                            <c:choose>
+                                <c:when test="${invoice != null}">
+                                    <c:set var="invoiceRoom" value="${null}"/>
+                                    <c:forEach items="${rooms}" var="r">
+                                        <c:if test="${r.id == invoice.roomId}">
+                                            <c:set var="invoiceRoom" value="${r}"/>
+                                        </c:if>
+                                    </c:forEach>
+                                    <input type="hidden" name="boardingHouseId" value="${invoiceRoom.boardingHouseId}">
+                                    <input type="text" value="<c:forEach items='${boardinghouses}' var='bh'><c:if test='${bh.id == invoiceRoom.boardingHouseId}'>${bh.name}</c:if></c:forEach>" readonly style="background: #f1f5f9;">
+                                </c:when>
+                                <c:otherwise>
+                                    <select id="boardingHouseId" name="boardingHouseId">
+                                        <option value="">-- Chọn nhà trọ --</option>
+                                        <c:forEach items="${boardinghouses}" var="bh">
+                                            <option value="${bh.id}">${bh.name}</option>
+                                        </c:forEach>
+                                    </select>
+                                    <p class="hint">Chọn nhà trọ trước để lọc danh sách phòng</p>
+                                </c:otherwise>
+                            </c:choose>
+                        </div>
+                        <div class="form-group">
                             <label>Phòng</label>
-                            <select name="roomId" required>
-                                <c:forEach items="${rooms}" var="r">
-                                    <option value="${r.id}" ${invoice != null && invoice.roomId == r.id ? 'selected' : ''}>${r.roomCode}</option>
-                                </c:forEach>
-                            </select>
+                            <c:choose>
+                                <c:when test="${invoice != null}">
+                                    <input type="hidden" name="roomId" value="${invoice.roomId}">
+                                    <input type="text" value="<c:forEach items='${rooms}' var='r'><c:if test='${r.id == invoice.roomId}'>${r.roomCode}</c:if></c:forEach>" readonly style="background: #f1f5f9;">
+                                </c:when>
+                                <c:otherwise>
+                                    <select id="roomId" name="roomId" required>
+                                        <option value="">-- Chọn phòng --</option>
+                                    </select>
+                                </c:otherwise>
+                            </c:choose>
                         </div>
                         <div class="form-group">
                             <label>Tháng</label>
@@ -64,10 +95,18 @@
                         </div>
                         <div class="form-group">
                             <label>Trạng thái</label>
-                            <select name="status">
-                                <option value="unpaid" ${invoice != null && invoice.status == 'unpaid' ? 'selected' : ''}>Chưa thanh toán</option>
-                                <option value="paid" ${invoice != null && invoice.status == 'paid' ? 'selected' : ''}>Đã thanh toán</option>
-                            </select>
+                            <c:choose>
+                                <c:when test="${invoice != null}">
+                                    <select name="status">
+                                        <option value="unpaid" ${invoice.status == 'unpaid' ? 'selected' : ''}>Chưa thanh toán</option>
+                                        <option value="paid" ${invoice.status == 'paid' ? 'selected' : ''}>Đã thanh toán</option>
+                                    </select>
+                                </c:when>
+                                <c:otherwise>
+                                    <input type="hidden" name="status" value="unpaid">
+                                    <input type="text" value="Chưa thanh toán" readonly style="background: #f1f5f9;">
+                                </c:otherwise>
+                            </c:choose>
                         </div>
                         <button type="submit" class="btn btn-primary">Lưu</button>
                         <a href="${pageContext.request.contextPath}/invoice" class="btn">Hủy</a>
@@ -77,5 +116,40 @@
             <jsp:include page="../common/footer.jsp"/>
         </div>
     </div>
+
+    <script>
+        // Map of room data: roomId -> { roomCode, boardingHouseId }
+        const roomsData = {
+            <c:forEach items="${rooms}" var="r" varStatus="status">
+            ${r.id}: { roomCode: '${r.roomCode}', bhId: ${r.boardingHouseId} }<c:if test="${!status.last}">,</c:if>
+            </c:forEach>
+        };
+
+        // Only add event listener if boardingHouseId select exists (not in edit mode)
+        const bhSelect = document.getElementById('boardingHouseId');
+        if (bhSelect && bhSelect.tagName === 'SELECT') {
+            bhSelect.addEventListener('change', function() {
+                const selectedBhId = parseInt(this.value);
+                const roomSelect = document.getElementById('roomId');
+                const currentRoomId = document.querySelector('input[name="roomId"]')?.value;
+                
+                roomSelect.innerHTML = '<option value="">-- Chọn phòng --</option>';
+                
+                if (selectedBhId) {
+                    Object.keys(roomsData).forEach(roomId => {
+                        if (roomsData[roomId].bhId === selectedBhId) {
+                            const option = document.createElement('option');
+                            option.value = roomId;
+                            option.textContent = roomsData[roomId].roomCode;
+                            if (currentRoomId && parseInt(currentRoomId) === parseInt(roomId)) {
+                                option.selected = true;
+                            }
+                            roomSelect.appendChild(option);
+                        }
+                    });
+                }
+            });
+        }
+    </script>
 </body>
 </html>

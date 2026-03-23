@@ -22,6 +22,8 @@
         .btn-primary { background: #2563eb; color: #fff; }
         .btn-danger { background: #dc2626; color: #fff; }
         .btn-small { padding: 4px 10px; font-size: 0.8rem; }
+        .filter { margin-bottom: 16px; }
+        .filter select { padding: 8px; }
     </style>
 </head>
 <body>
@@ -31,7 +33,18 @@
             <jsp:include page="../common/header.jsp"/>
             <div class="content">
                 <h1>Chỉ số điện nước</h1>
-                <p><a href="${pageContext.request.contextPath}/meterreading?action=add" class="btn btn-primary">Thêm chỉ số</a></p>
+                <div class="filter" style="margin-bottom: 16px;">
+                    <form method="get" action="${pageContext.request.contextPath}/meterreading">
+                        <label>Lọc theo nhà trọ: </label>
+                        <select name="boardingHouseId" onchange="this.form.submit()">
+                            <option value="">-- Tất cả --</option>
+                            <c:forEach items="${boardinghouses}" var="bh">
+                                <option value="${bh.id}" ${filterBoardingHouseId == bh.id ? 'selected' : ''}>${bh.name}</option>
+                            </c:forEach>
+                        </select>
+                    </form>
+                </div>
+                <p><a href="${pageContext.request.contextPath}/meterreading?action=add<c:if test="${filterBoardingHouseId != null}">&boardingHouseId=${filterBoardingHouseId}</c:if>" class="btn btn-primary">Thêm chỉ số</a></p>
                 <div class="card">
                     <table>
                         <tr><th>ID</th><th>Phòng</th><th>Tháng/Năm</th><th>Điện đầu</th><th>Điện cuối</th><th>Nước đầu</th><th>Nước cuối</th><th>Thao tác</th></tr>

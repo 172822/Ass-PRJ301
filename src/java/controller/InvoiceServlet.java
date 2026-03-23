@@ -47,6 +47,19 @@ public class InvoiceServlet extends HttpServlet {
         return roomDAO.getAll().stream().filter(r -> houseIds.contains(r.getBoardingHouseId())).collect(Collectors.toList());
     }
 
+    private List<BoardingHouse> getBoardingHousesForUser(User user) {
+        if (user == null) return List.of();
+        if ("ADMIN".equals(user.getRole())) return boardingHouseDAO.getAll();
+        if ("STUDENT".equals(user.getRole())) return List.of();
+        return boardingHouseDAO.getByLandlordId(user.getId());
+    }
+
+    private List<Room> getRoomsByBoardingHouse(Integer boardingHouseId, User user) {
+        List<Room> allRooms = getRoomsForUser(user);
+        if (boardingHouseId == null) return allRooms;
+        return allRooms.stream().filter(r -> r.getBoardingHouseId().equals(boardingHouseId)).collect(Collectors.toList());
+    }
+
     private List<Invoice> getInvoicesForUser(User user) {
         if (user == null) return List.of();
         List<Room> myRooms = getRoomsForUser(user);
@@ -71,6 +84,7 @@ public class InvoiceServlet extends HttpServlet {
                     request.setAttribute("invoice", inv);
                 }
             }
+            request.setAttribute("boardinghouses", getBoardingHousesForUser(user));
             request.setAttribute("rooms", getRoomsForUser(user));
             request.getRequestDispatcher("/views/invoice/form.jsp").forward(request, response);
             return;
@@ -80,6 +94,7 @@ public class InvoiceServlet extends HttpServlet {
                 response.sendRedirect(request.getContextPath() + "/invoice");
                 return;
             }
+            request.setAttribute("boardinghouses", getBoardingHousesForUser(user));
             request.setAttribute("rooms", getRoomsForUser(user));
             request.getRequestDispatcher("/views/invoice/form.jsp").forward(request, response);
             return;
@@ -98,9 +113,23 @@ public class InvoiceServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/invoice");
             return;
         }
-        request.setAttribute("invoices", getInvoicesForUser(user));
-        request.setAttribute("rooms", roomDAO.getAll());
-        request.setAttribute("boardinghouses", boardingHouseDAO.getAll());
+        String boardingHouseIdStr = request.getParameter("boardingHouseId");
+        Integer filterBoardingHouseId = null;
+        if (boardingHouseIdStr != null && !boardingHouseIdStr.isEmpty()) {
+            filterBoardingHouseId = Integer.parseInt(boardingHouseIdStr);
+        }
+        
+        List<Invoice> allUserInvoices = getInvoicesForUser(user);
+        List<Room> filteredRooms = getRoomsByBoardingHouse(filterBoardingHouseId, user);
+        List<Integer> filteredRoomIds = filteredRooms.stream().map(Room::getId).collect(Collectors.toList());
+        List<Invoice> filteredInvoices = allUserInvoices.stream()
+                .filter(i -> filteredRoomIds.contains(i.getRoomId()))
+                .collect(Collectors.toList());
+        
+        request.setAttribute("invoices", filteredInvoices);
+        request.setAttribute("rooms", filteredRooms);
+        request.setAttribute("boardinghouses", getBoardingHousesForUser(user));
+        request.setAttribute("filterBoardingHouseId", filterBoardingHouseId);
         request.getRequestDispatcher("/views/invoice/list.jsp").forward(request, response);
     }
 

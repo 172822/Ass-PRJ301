@@ -23,6 +23,8 @@
         .btn-primary { background: #2563eb; color: #fff; }
         .btn-danger { background: #dc2626; color: #fff; }
         .btn-small { padding: 4px 10px; font-size: 0.8rem; }
+        .filter { margin-bottom: 16px; }
+        .filter select { padding: 8px; }
     </style>
 </head>
 <body>
@@ -32,8 +34,19 @@
             <jsp:include page="../common/header.jsp"/>
             <div class="content">
                 <h1>Hợp đồng</h1>
+                <div class="filter" style="margin-bottom: 16px;">
+                    <form method="get" action="${pageContext.request.contextPath}/contract">
+                        <label>Lọc theo nhà trọ: </label>
+                        <select name="boardingHouseId" onchange="this.form.submit()">
+                            <option value="">-- Tất cả --</option>
+                            <c:forEach items="${boardinghouses}" var="bh">
+                                <option value="${bh.id}" ${filterBoardingHouseId == bh.id ? 'selected' : ''}>${bh.name}</option>
+                            </c:forEach>
+                        </select>
+                    </form>
+                </div>
                 <c:if test="${sessionScope.user.role != 'STUDENT'}">
-                    <p><a href="${pageContext.request.contextPath}/contract?action=add" class="btn btn-primary">Thêm hợp đồng</a></p>
+                    <p><a href="${pageContext.request.contextPath}/contract?action=add<c:if test="${filterBoardingHouseId != null}">&boardingHouseId=${filterBoardingHouseId}</c:if>" class="btn btn-primary">Thêm hợp đồng</a></p>
                 </c:if>
                 <div class="card">
                     <table>
