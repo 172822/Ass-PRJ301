@@ -1,6 +1,7 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -42,6 +43,11 @@
             <jsp:include page="../common/header.jsp"/>
             <div class="content">
                 <h1>Hợp đồng #${contract.id}</h1>
+                <c:if test="${param.error == 'maxTenants'}">
+                    <div style="background:#fef2f2;color:#b91c1c;padding:12px 14px;border-radius:6px;margin-bottom:16px;border:1px solid #fecaca;max-width:720px;">
+                        Đã đạt số người tối đa cho phòng này. Gỡ bớt người thuê hoặc tăng sức chứa phòng nếu cần.
+                    </div>
+                </c:if>
                 <div class="card">
                     <p><strong>Phòng:</strong> ${room != null ? room.roomCode : contract.roomId}</p>
                     <p><strong>Bắt đầu:</strong> ${contract.startDate}</p>
@@ -55,6 +61,11 @@
                 </div>
                 <div class="card">
                     <h3>Người thuê</h3>
+                    <c:if test="${room != null && room.maxPerson != null}">
+                        <p style="color:#64748b;font-size:0.9rem;margin:0 0 12px 0;">
+                            Đang có <strong>${fn:length(tenantUsers)}</strong> / tối đa <strong>${room.maxPerson}</strong> người.
+                        </p>
+                    </c:if>
                     <table>
                         <tr><th>Họ tên</th><th>Email</th><th>SĐT</th><c:if test="${sessionScope.user.role != 'STUDENT'}"><th>Thao tác</th></c:if></tr>
                         <c:forEach items="${tenantUsers}" var="u">

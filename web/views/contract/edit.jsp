@@ -41,6 +41,9 @@
             <div class="content">
                 <h1>Sửa hợp đồng #${contract.id}</h1>
                 <div class="card">
+                    <c:if test="${not empty error}">
+                        <div style="background:#fef2f2;color:#b91c1c;padding:12px 14px;border-radius:6px;margin-bottom:16px;border:1px solid #fecaca;"><c:out value="${error}"/></div>
+                    </c:if>
                     <form action="${pageContext.request.contextPath}/contract" method="post" id="contractEditForm">
                         <input type="hidden" name="action" value="save">
                         <input type="hidden" name="id" value="${contract.id}">

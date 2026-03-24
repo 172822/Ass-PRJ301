@@ -13,13 +13,16 @@ import models.BoardingHouse;
 import models.Contract;
 import models.ContractUser;
 import models.Room;
+import models.RoomStatus;
 import models.User;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.sql.Date;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -79,6 +82,156 @@ public class ContractServlet extends HttpServlet {
         return rooms;
     }
 
+    private boolean hasConflictingActiveContract(int roomId, Integer excludeContractId) {
+        for (Contract c : contractDAO.getByRoomId(roomId)) {
+            if (c.getStatus() == null || !"active".equalsIgnoreCase(c.getStatus())) {
+                continue;
+            }
+            if (excludeContractId != null && c.getId() != null && c.getId().equals(excludeContractId)) {
+                continue;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private void syncRoomRentalStatus(int roomId) {
+        Room r = roomDAO.getById(roomId);
+        if (r == null) {
+            return;
+        }
+        boolean hasActive = contractDAO.getActiveContractIdByRoomIds(Collections.singletonList(roomId)).containsKey(roomId);
+        RoomStatus target = hasActive ? RoomStatus.RENTED : RoomStatus.EMPTY;
+        RoomStatus current = RoomStatus.parse(r.getStatus());
+        if (current != target) {
+            r.setStatus(target.dbValue());
+            roomDAO.update(r);
+        }
+    }
+
+    private void attachTenantPickerForForm(HttpServletRequest request, List<Integer> linkedUserIds) {
+        String tsParam = request.getParameter("tenantSearch");
+        String ts = tsParam == null ? "" : tsParam.trim();
+        List<User> pool;
+        if (ts.length() >= 2) {
+            pool = userDAO.searchActiveStudentsByEmailOrPhone(ts);
+            request.setAttribute("tenantSearchMode", Boolean.TRUE);
+        } else {
+            pool = userDAO.getByRole("STUDENT");
+            request.setAttribute("tenantSearchMode", Boolean.FALSE);
+            if (ts.length() == 1) {
+                request.setAttribute("tenantSearchHint",
+                        "Nhập ít nhất 2 ký tự để tìm theo email hoặc số điện thoại.");
+            }
+        }
+        List<User> available = pool.stream()
+                .filter(u -> u.getId() != null && !linkedUserIds.contains(u.getId()))
+                .collect(Collectors.toList());
+        request.setAttribute("availableTenants", available);
+        request.setAttribute("tenantSearch", tsParam == null ? "" : tsParam);
+    }
+
+    private List<Integer> parseDistinctTenantUserIds(HttpServletRequest request) {
+        String[] raw = request.getParameterValues("tenantUserId");
+        if (raw == null || raw.length == 0) {
+            return new ArrayList<>();
+        }
+        LinkedHashSet<Integer> set = new LinkedHashSet<>();
+        for (String s : raw) {
+            if (s == null || s.isBlank()) {
+                continue;
+            }
+            try {
+                set.add(Integer.parseInt(s.trim()));
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
+        return new ArrayList<>(set);
+    }
+
+    /** Giữ người đã chọn khi GET tìm kiếm lại trên màn thêm hợp đồng. */
+    private List<Integer> parsePickedTenantIdsFromRequest(HttpServletRequest request) {
+        String[] raw = request.getParameterValues("pickedTenantId");
+        if (raw == null || raw.length == 0) {
+            return new ArrayList<>();
+        }
+        LinkedHashSet<Integer> set = new LinkedHashSet<>();
+        for (String s : raw) {
+            if (s == null || s.isBlank()) {
+                continue;
+            }
+            try {
+                set.add(Integer.parseInt(s.trim()));
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return new ArrayList<>(set);
+    }
+
+    private void setSelectedTenantsForAddForm(HttpServletRequest request, List<Integer> ids) {
+        List<Integer> validIds = new ArrayList<>();
+        List<User> pickedUsers = new ArrayList<>();
+        for (Integer id : ids) {
+            if (id == null) {
+                continue;
+            }
+            User u = userDAO.getUserById(id);
+            if (u != null && "STUDENT".equals(u.getRole()) && Boolean.TRUE.equals(u.getIsActive())) {
+                validIds.add(id);
+                pickedUsers.add(u);
+            }
+        }
+        request.setAttribute("selectedTenantIds", validIds);
+        request.setAttribute("selectedTenantUsers", pickedUsers);
+    }
+
+    private void forwardAddFormWithError(HttpServletRequest request, HttpServletResponse response, User user, String errorMsg)
+            throws ServletException, IOException {
+        List<Room> rooms = attachRoomsAndBoardingHousesForContractForm(request, user);
+        try {
+            String roomIdStr = request.getParameter("roomId");
+            if (roomIdStr != null && !roomIdStr.isBlank()) {
+                int rid = Integer.parseInt(roomIdStr.trim());
+                Room match = rooms.stream().filter(r -> r.getId() != null && r.getId() == rid).findFirst().orElse(null);
+                if (match != null) {
+                    request.setAttribute("preselectedRoomId", rid);
+                    request.setAttribute("preselectedBoardingHouseId", match.getBoardingHouseId());
+                }
+            }
+        } catch (NumberFormatException ignored) {
+        }
+        request.setAttribute("error", errorMsg);
+        String sd = request.getParameter("startDate");
+        String ed = request.getParameter("endDate");
+        request.setAttribute("prefillStartDate", sd != null ? sd : "");
+        request.setAttribute("prefillEndDate", ed != null ? ed : "");
+        request.setAttribute("prefillDeposit", request.getParameter("deposit") != null ? request.getParameter("deposit") : "0");
+        request.setAttribute("prefillRentPrice", request.getParameter("rentPrice") != null ? request.getParameter("rentPrice") : "");
+        String st = request.getParameter("status");
+        request.setAttribute("prefillStatus", st != null ? st : "active");
+        List<Integer> sel = parseDistinctTenantUserIds(request);
+        List<Integer> safeSel = sel != null ? sel : List.of();
+        setSelectedTenantsForAddForm(request, safeSel);
+        attachTenantPickerForForm(request, safeSel);
+        request.getRequestDispatcher("/views/contract/form.jsp").forward(request, response);
+    }
+
+    private void forwardEditFormWithError(HttpServletRequest request, HttpServletResponse response, User user,
+            int contractId, int roomId, Date startDate, Date endDate, double deposit, double rentPrice, String status, String errorMsg)
+            throws ServletException, IOException {
+        Contract draft = new Contract(contractId, roomId, startDate, endDate, deposit, rentPrice, status);
+        request.setAttribute("contract", draft);
+        request.setAttribute("error", errorMsg);
+        attachRoomsAndBoardingHousesForContractForm(request, user);
+        Room cur = roomDAO.getById(roomId);
+        if (cur != null && cur.getBoardingHouseId() != null) {
+            request.setAttribute("preselectedBoardingHouseId", cur.getBoardingHouseId());
+        }
+        request.setAttribute("preselectedRoomId", roomId);
+        request.getRequestDispatcher("/views/contract/edit.jsp").forward(request, response);
+    }
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -116,28 +269,10 @@ public class ContractServlet extends HttpServlet {
                         }
                         if (!"STUDENT".equals(user.getRole())) {
                             if ("view".equals(action)) {
-                                String tsParam = request.getParameter("tenantSearch");
-                                String ts = tsParam == null ? "" : tsParam.trim();
                                 List<Integer> linkedIds = contractUserDAO.getByContractId(c.getId()).stream()
                                         .map(ContractUser::getUserId)
                                         .collect(Collectors.toList());
-                                List<User> pool;
-                                if (ts.length() >= 2) {
-                                    pool = userDAO.searchActiveStudentsByEmailOrPhone(ts);
-                                    request.setAttribute("tenantSearchMode", Boolean.TRUE);
-                                } else {
-                                    pool = userDAO.getByRole("STUDENT");
-                                    request.setAttribute("tenantSearchMode", Boolean.FALSE);
-                                    if (ts.length() == 1) {
-                                        request.setAttribute("tenantSearchHint",
-                                                "Nhập ít nhất 2 ký tự để tìm theo email hoặc số điện thoại.");
-                                    }
-                                }
-                                List<User> available = pool.stream()
-                                        .filter(u -> u.getId() != null && !linkedIds.contains(u.getId()))
-                                        .collect(Collectors.toList());
-                                request.setAttribute("availableTenants", available);
-                                request.setAttribute("tenantSearch", tsParam == null ? "" : tsParam);
+                                attachTenantPickerForForm(request, linkedIds);
                             } else {
                                 request.setAttribute("availableTenants", userDAO.getByRole("STUDENT"));
                             }
@@ -179,6 +314,9 @@ public class ContractServlet extends HttpServlet {
             }
             request.setAttribute("preselectedRoomId", preRoom);
             request.setAttribute("preselectedBoardingHouseId", preBh);
+            List<Integer> prePicked = parsePickedTenantIdsFromRequest(request);
+            setSelectedTenantsForAddForm(request, prePicked);
+            attachTenantPickerForForm(request, prePicked);
             request.getRequestDispatcher("/views/contract/form.jsp").forward(request, response);
             return;
         }
@@ -219,6 +357,13 @@ public class ContractServlet extends HttpServlet {
             if (contractIdStr != null && userIdStr != null && !"STUDENT".equals(user.getRole())) {
                 Contract c = contractDAO.getById(Integer.parseInt(contractIdStr));
                 if (c != null && getContractsForUser(user).stream().anyMatch(a -> a.getId().equals(c.getId()))) {
+                    Room room = roomDAO.getById(c.getRoomId());
+                    int current = contractUserDAO.getByContractId(c.getId()).size();
+                    int maxP = room != null && room.getMaxPerson() != null ? room.getMaxPerson() : 0;
+                    if (room != null && current >= maxP) {
+                        response.sendRedirect(request.getContextPath() + "/contract?action=view&id=" + contractIdStr + "&error=maxTenants");
+                        return;
+                    }
                     contractUserDAO.insert(new ContractUser(Integer.parseInt(contractIdStr), Integer.parseInt(userIdStr)));
                 }
             }
@@ -252,8 +397,11 @@ public class ContractServlet extends HttpServlet {
             String idStr = request.getParameter("id");
             if (idStr != null && !"STUDENT".equals(user.getRole())) {
                 Contract c = contractDAO.getById(Integer.parseInt(idStr));
-                if (c != null && getContractsForUser(user).stream().anyMatch(a -> a.getId().equals(c.getId())))
+                if (c != null && getContractsForUser(user).stream().anyMatch(a -> a.getId().equals(c.getId()))) {
+                    int roomId = c.getRoomId();
                     contractDAO.delete(Integer.parseInt(idStr));
+                    syncRoomRentalStatus(roomId);
+                }
             }
             response.sendRedirect(request.getContextPath() + "/contract");
             return;
@@ -265,31 +413,104 @@ public class ContractServlet extends HttpServlet {
             String depositStr = request.getParameter("deposit");
             String rentPriceStr = request.getParameter("rentPrice");
             String status = request.getParameter("status");
-            if (roomIdStr != null && startDateStr != null && endDateStr != null) {
-                int roomId = Integer.parseInt(roomIdStr);
-                if (getRoomsForUser(user).stream().anyMatch(r -> r.getId() == roomId)) {
-                    Date startDate = Date.valueOf(startDateStr);
-                    Date endDate = Date.valueOf(endDateStr);
-                    double deposit = depositStr != null && !depositStr.isEmpty() ? Double.parseDouble(depositStr) : 0;
-                    double rentPrice = rentPriceStr != null && !rentPriceStr.isEmpty() ? Double.parseDouble(rentPriceStr) : 0;
-                    if (status == null) status = "active";
-                    String idStr = request.getParameter("id");
-                    if (idStr != null && !idStr.isEmpty()) {
-                        Contract c = contractDAO.getById(Integer.parseInt(idStr));
-                        if (c != null && getContractsForUser(user).stream().anyMatch(a -> a.getId().equals(c.getId()))) {
-                            c.setRoomId(roomId);
-                            c.setStartDate(startDate);
-                            c.setEndDate(endDate);
-                            c.setDeposit(deposit);
-                            c.setRentPrice(rentPrice);
-                            c.setStatus(status);
-                            contractDAO.update(c);
+            String idStr = request.getParameter("id");
+            if (roomIdStr == null || startDateStr == null || endDateStr == null) {
+                response.sendRedirect(request.getContextPath() + "/contract");
+                return;
+            }
+            int roomId;
+            Date startDate;
+            Date endDate;
+            double deposit;
+            double rentPrice;
+            try {
+                roomId = Integer.parseInt(roomIdStr);
+                startDate = Date.valueOf(startDateStr);
+                endDate = Date.valueOf(endDateStr);
+                deposit = depositStr != null && !depositStr.isEmpty() ? Double.parseDouble(depositStr) : 0;
+                rentPrice = rentPriceStr != null && !rentPriceStr.isEmpty() ? Double.parseDouble(rentPriceStr) : 0;
+            } catch (IllegalArgumentException e) {
+                if (idStr != null && !idStr.isEmpty()) {
+                    response.sendRedirect(request.getContextPath() + "/contract");
+                } else {
+                    forwardAddFormWithError(request, response, user, "Dữ liệu nhập không hợp lệ.");
+                }
+                return;
+            }
+            if (status == null) {
+                status = "active";
+            }
+            if (!getRoomsForUser(user).stream().anyMatch(r -> r.getId() == roomId)) {
+                response.sendRedirect(request.getContextPath() + "/contract");
+                return;
+            }
+            if (idStr != null && !idStr.isEmpty()) {
+                try {
+                    int cid = Integer.parseInt(idStr);
+                    Contract c = contractDAO.getById(cid);
+                    if (c != null && getContractsForUser(user).stream().anyMatch(a -> a.getId().equals(c.getId()))) {
+                        if ("active".equalsIgnoreCase(status) && hasConflictingActiveContract(roomId, cid)) {
+                            forwardEditFormWithError(request, response, user, cid, roomId, startDate, endDate, deposit, rentPrice, status,
+                                    "Phòng này đã có hợp đồng đang hoạt động khác.");
+                            return;
                         }
-                    } else {
-                        Contract c = new Contract(null, roomId, startDate, endDate, deposit, rentPrice, status);
-                        contractDAO.insert(c);
+                        int oldRoomId = c.getRoomId();
+                        c.setRoomId(roomId);
+                        c.setStartDate(startDate);
+                        c.setEndDate(endDate);
+                        c.setDeposit(deposit);
+                        c.setRentPrice(rentPrice);
+                        c.setStatus(status);
+                        contractDAO.update(c);
+                        syncRoomRentalStatus(oldRoomId);
+                        if (oldRoomId != roomId) {
+                            syncRoomRentalStatus(roomId);
+                        }
+                    }
+                } catch (NumberFormatException e) {
+                    response.sendRedirect(request.getContextPath() + "/contract");
+                    return;
+                }
+            } else {
+                if ("active".equalsIgnoreCase(status) && hasConflictingActiveContract(roomId, null)) {
+                    forwardAddFormWithError(request, response, user, "Phòng này đã có hợp đồng đang hoạt động.");
+                    return;
+                }
+                Room room = roomDAO.getById(roomId);
+                if (room == null) {
+                    forwardAddFormWithError(request, response, user, "Không tìm thấy phòng.");
+                    return;
+                }
+                List<Integer> tenantIds = parseDistinctTenantUserIds(request);
+                if (tenantIds == null) {
+                    forwardAddFormWithError(request, response, user, "Dữ liệu người thuê không hợp lệ.");
+                    return;
+                }
+                int maxP = room.getMaxPerson() != null ? room.getMaxPerson() : 0;
+                if (tenantIds.size() > maxP) {
+                    forwardAddFormWithError(request, response, user,
+                            "Số người thuê không được vượt quá số chỗ tối đa của phòng (" + maxP + ").");
+                    return;
+                }
+                for (Integer tid : tenantIds) {
+                    User tu = userDAO.getUserById(tid);
+                    if (tu == null || !"STUDENT".equals(tu.getRole()) || !Boolean.TRUE.equals(tu.getIsActive())) {
+                        forwardAddFormWithError(request, response, user, "Một hoặc nhiều tài khoản người thuê không hợp lệ.");
+                        return;
                     }
                 }
+                Contract c = new Contract(null, roomId, startDate, endDate, deposit, rentPrice, status);
+                Integer newId = contractDAO.insert(c);
+                if (newId == null) {
+                    forwardAddFormWithError(request, response, user, "Không thể tạo hợp đồng. Vui lòng thử lại.");
+                    return;
+                }
+                for (Integer tid : tenantIds) {
+                    contractUserDAO.insert(new ContractUser(newId, tid));
+                }
+                syncRoomRentalStatus(roomId);
+                response.sendRedirect(request.getContextPath() + "/contract?action=view&id=" + newId);
+                return;
             }
         }
         response.sendRedirect(request.getContextPath() + "/contract");

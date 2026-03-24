@@ -182,10 +182,11 @@ public class ContractDAO extends DBContext {
         return list;
     }
 
-    public void insert(Contract c) {
+    /** @return id hợp đồng mới, hoặc {@code null} nếu lỗi */
+    public Integer insert(Contract c) {
         String sql = "INSERT INTO contract(room_id, start_date, end_date, deposit, rent_price, status) VALUES(?,?,?,?,?,?)";
         try {
-            PreparedStatement st = connection.prepareStatement(sql);
+            PreparedStatement st = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             st.setInt(1, c.getRoomId());
             st.setDate(2, c.getStartDate());
             st.setDate(3, c.getEndDate());
@@ -193,9 +194,15 @@ public class ContractDAO extends DBContext {
             st.setDouble(5, c.getRentPrice());
             st.setString(6, c.getStatus());
             st.executeUpdate();
+            try (ResultSet keys = st.getGeneratedKeys()) {
+                if (keys.next()) {
+                    return keys.getInt(1);
+                }
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        return null;
     }
 
     public void update(Contract c) {
